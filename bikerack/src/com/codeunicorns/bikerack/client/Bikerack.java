@@ -33,6 +33,7 @@ import com.google.gwt.maps.client.geom.LatLng;
 import com.google.gwt.maps.client.overlay.Marker;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
+import com.google.gwt.user.client.Cookies;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -56,7 +57,7 @@ public class Bikerack implements EntryPoint {
 	private final DockLayoutPanel mainPanel = new DockLayoutPanel(Unit.PX);
 	private HorizontalPanel loggedInPanel = new HorizontalPanel();
 	private HorizontalPanel notLoggedInPanel = new HorizontalPanel();
-	private LayoutPanel logInStatusPanel = new LayoutPanel();
+	private VerticalPanel logInStatusPanel = new VerticalPanel();
 	private Label siteLabel = new Label("Bike Racks Locator");
 	private Label loginLabel = new Label(
 			"Sign in or create an account to save your favorites."); 
@@ -78,8 +79,9 @@ public class Bikerack implements EntryPoint {
 		// load app title on top
 		loadAppTitle();
 		// load login prompt with signin and register button, or welcome message, at bottom 
-		loadLoginPanel();
-		getLoginInfo(null);
+		loadLoginStatusPanel();
+		getLoginInfo();
+		setLoginStatusPanel(loginInfo);
 		// load pane with list of bike racks and search results on left side
 		loadRackPanel();
 		// load user login/register form, user profile, favorites and logout button on the right side
@@ -104,13 +106,14 @@ public class Bikerack implements EntryPoint {
 	
 	/**
 	 * This loads the line right below the map
-	 * Both "Welcome!" label, and "Signin or Register to view...." label
+	 * Both "Welcome!" label and signout button, and "Signin or Register to view...." label
 	 * (with signup and signin buttons next to it) are loaded, but both are set to invisible
 	 * on top of each other 
 	 */	
-	private void loadLoginPanel() {
+	private void loadLoginStatusPanel() {
 		welcomeLabel = new Label("Welcome!");
 		loggedInPanel.add(welcomeLabel);
+		loggedInPanel.add(logoutButton);
 	  
 		notLoggedInPanel.add(loginLabel);
 		notLoggedInPanel.add(loginButton);
@@ -121,32 +124,34 @@ public class Bikerack implements EntryPoint {
 		logInStatusPanel.add(notLoggedInPanel);
 		
 		mainPanel.addSouth(logInStatusPanel, 100);
+		
+		// Listen for mouse events on the Login, logout and signup button.
+		loginButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				//TODO: change argument to login to pass info from login form
+				login(null);
+			}
+		});
+		logoutButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				logout();
+			}
+		});		
+		signupButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+			// TODO: implements signup button
+			}
+		});
 	}
-	
+
 	/**
-	 * this function determines which one of the loginStatusPanels will be visible,
-	 * the notLoggedIn or the loggedIn. 
-	 * Depending on the loginInfo passed to it
-	 * @param loginInfo if null then user is not logged in, if not null then user is logged in
-	 */
-	private void setLoginStatusPanel(LoginInfo loginInfo) {
-		if (loginInfo != null) {
-			UIObject.setVisible(notLoggedInPanel.getElement(), false);
-			UIObject.setVisible(loggedInPanel.getElement(), true);
-		}
-		else {
-			UIObject.setVisible(notLoggedInPanel.getElement(), true);
-			UIObject.setVisible(loggedInPanel.getElement(), false);
-		}
-	}
-	
-	/**
-	 * Everything about the user including login form, logout button, user profile, favorites, etc.
+	 * Everything about the user including login form, user profile, favorites, etc.
 	 * on the right side of the map (east of mainPanel)
 	 * NOTE : uses TabLayout for all of these different pages/functionalities
 	 */
 	private void loadUserPanel() {
 		// TODO Auto-generated method stub
+		
 		
 	}
 	
@@ -187,39 +192,71 @@ public class Bikerack implements EntryPoint {
 	  }
 	
 	/**
-	 * This function check with server through LoginService if the current user is logged in,
-	 * expecting a loginInfo response from server, will set visibility accordingly
-	 * If server reponds not logged in, then passes null to setLogInStatusPanel, otherwise the 
-	 * result LoginInfo   
-	 * @param loginRequest if null, meaning just checking login status, if not null, is an array
-	 * of string containing user and password (simple implementation for now) to be sent to server
-	 * for authentication
+	 * this function determines which one of the loginStatusPanels will be visible,
+	 * the notLoggedIn or the loggedIn. 
+	 * Depending on the loginInfo passed to it
+	 * @param loginInfo if null then user is not logged in, if not null then user is logged in
 	 */
-	private void getLoginInfo(String[] loginRequest) {
-//   TODO: haven't implemented the server side stuff so no login check for now, 
-//         just change the argument of setLoginStatusPanel for testing for now
-//		final LoginInfo loginInfo = null;
-//		LoginServiceAsync loginService = GWT.create(LoginService.class);
-//		loginService.login(loginRequest,
-//				new AsyncCallback<LoginInfo>() {
-//					public void onFailure(Throwable error) {
-//						handleError(error);
-//					}
-//
-//					public void onSuccess(LoginInfo result) {
-//						//loginInfo = result;
-//						if (result.isLoggedIn()) {
-//							setLoginPanel(result);
-//						} else {
-//							setLoginPanel(null);
-//						}
-//					}
-//				});
-		
-//   For NOT logged in test, should show the login/register button and the prompt label 
-		setLoginStatusPanel(null);
-//   For logged in test, should show the welcome message
-//		setLoginStatusPanel(new LoginInfo());
+	private void setLoginStatusPanel(LoginInfo loginInfo) {
+		if (loginInfo != null) {
+			notLoggedInPanel.setVisible(false);
+			loggedInPanel.setVisible(true);
+		}
+		else {
+			notLoggedInPanel.setVisible(true);
+			loggedInPanel.setVisible(false);
+		}
+	}
+	
+	/*
+	 * Send login Info to be checked by the server, if server sends a non-null login info, then
+	 * set the cookie and set status of client to be logged in with that loginInfo. Server sents back
+	 * a null if info in login form is not a valid user
+	 * @param is an array of string containing user and password (simple implementation for now) 
+	 * to be sent to server for authentication
+	 */
+	protected void login(String[] loginRequest) {
+	// TODO: change argument to getlogininfo to link with form filled in after clicking signup button
+	//   TODO: haven't implemented the server side stuff so no login check for now, 
+		LoginServiceAsync loginService = GWT.create(LoginService.class);
+		loginService.login(loginRequest,
+				new AsyncCallback<LoginInfo>() {
+					public void onFailure(Throwable error) {
+						handleError(error);
+					}
+
+					public void onSuccess(LoginInfo result) {
+							loginInfo = result;
+							if (loginInfo != null) {
+								// set cookie
+								Cookies.setCookie("bikeracklocator", loginInfo.getNickname());
+								}
+							setLoginStatusPanel(loginInfo);
+						}
+				});
+	}
+	
+	/*
+	 * logout process, remove cookie from browser and set client login status to loggedout
+	 */
+	protected void logout() {
+		Cookies.removeCookie("bikeracklocator");
+		setLoginStatusPanel(loginInfo = null);
+	}
+	
+	/**
+	 * Retrieve login info from browser by mean of cookie 
+	 */
+	private void getLoginInfo() {
+		String cookieVal = Cookies.getCookie("bikeracklocator");
+		if (cookieVal == null) {
+		loginInfo = null;
+		}
+		else {
+			LoginInfo loginInfo = new LoginInfo();
+			loginInfo.setNickname(cookieVal);
+			this.loginInfo = loginInfo;
+		}
 	}
 		
 	private void handleError(Throwable error) {

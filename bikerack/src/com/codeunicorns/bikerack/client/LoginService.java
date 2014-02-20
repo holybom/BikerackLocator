@@ -8,5 +8,5 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
  */
 @RemoteServiceRelativePath("login")
 public interface LoginService extends RemoteService {
-	LoginInfo login(String[] loginInfo);
+	LoginInfo login(String[] request);
 }

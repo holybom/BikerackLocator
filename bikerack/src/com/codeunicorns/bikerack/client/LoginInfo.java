@@ -4,17 +4,17 @@ import java.io.Serializable;
 
 public class LoginInfo implements Serializable {
 
-	private boolean loggedIn = false;
+	//private boolean loggedIn = false;
 	private String emailAddress;
 	private String nickname;
 
-	public boolean isLoggedIn() {
-		return loggedIn;
-	}
-
-	public void setLoggedIn(boolean loggedIn) {
-		this.loggedIn = loggedIn;
-	}
+//	public boolean isLoggedIn() {
+//		return loggedIn;
+//	}
+//
+//	public void setLoggedIn(boolean loggedIn) {
+//		this.loggedIn = loggedIn;
+//	}
 
 	public String getEmailAddress() {
 		return emailAddress;
