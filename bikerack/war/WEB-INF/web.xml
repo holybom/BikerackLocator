@@ -7,13 +7,13 @@
 
   <!-- Servlets -->
    <servlet>
-    <servlet-name>loginService</servlet-name>
-    <servlet-class>com.codeunicorns.bikerack.server.LoginServiceImpl</servlet-class>
+    <servlet-name>AccountService</servlet-name>
+    <servlet-class>com.codeunicorns.bikerack.server.AccountServiceImpl</servlet-class>
   </servlet>
   
   <servlet-mapping>
-    <servlet-name>loginService</servlet-name>
-    <url-pattern>/bikerack/login</url-pattern>
+    <servlet-name>AccountService</servlet-name>
+    <url-pattern>/bikerack/account</url-pattern>
   </servlet-mapping>
   
   
