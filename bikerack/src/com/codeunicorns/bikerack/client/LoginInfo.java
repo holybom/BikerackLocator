@@ -2,18 +2,23 @@ package com.codeunicorns.bikerack.client;
 
 import java.io.Serializable;
 
+import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.PersistenceCapable;
+
 public class LoginInfo implements Serializable {
 
 	//private boolean loggedIn = false;
 	private String emailAddress;
-	private String nickname;
-
-//	public boolean isLoggedIn() {
-//		return loggedIn;
-//	}
-//
-//	public void setLoggedIn(boolean loggedIn) {
-//		this.loggedIn = loggedIn;
+	private String nickName;
+	
+	public LoginInfo() {
+		emailAddress = null;
+		nickName = null;
+	}
+	
+//	public LoginInfo(String emailAddress, String nickName) {
+//		this.emailAddress = emailAddress;
+//		this.nickName = nickName;
 //	}
 
 	public String getEmailAddress() {
@@ -25,10 +30,10 @@ public class LoginInfo implements Serializable {
 	}
 
 	public String getNickname() {
-		return nickname;
+		return nickName;
 	}
 
-	public void setNickname(String nickname) {
-		this.nickname = nickname;
+	public void setNickname(String nickName) {
+		this.nickName = nickName;
 	}
 }
