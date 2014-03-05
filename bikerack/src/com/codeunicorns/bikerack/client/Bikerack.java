@@ -31,12 +31,13 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.maps.client.InfoWindowContent;
-import com.google.gwt.maps.client.MapWidget;
-import com.google.gwt.maps.client.Maps;
-import com.google.gwt.maps.client.control.LargeMapControl;
-import com.google.gwt.maps.client.geom.LatLng;
-import com.google.gwt.maps.client.overlay.Marker;
+import com.google.maps.gwt.client.GoogleMap;
+import com.google.maps.gwt.client.MapOptions;
+import com.google.maps.gwt.client.LatLng;
+import com.google.maps.gwt.client.MapTypeId;
+import com.google.maps.gwt.client.Marker;
+import com.google.maps.gwt.client.MarkerOptions;
+import com.google.maps.gwt.client.MouseEvent;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.Cookies;
@@ -45,6 +46,7 @@ import com.google.gwt.user.client.Cookies;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Bikerack implements EntryPoint {
+	
 	/**
 	 * The message displayed to the user when the server cannot be reached or
 	 * returns an error.
@@ -53,17 +55,11 @@ public class Bikerack implements EntryPoint {
 			+ "attempting to contact the server. Please check your network "
 			+ "connection and try again.";
 
-	/**
-	 * Create a remote service proxy to talk to the server-side Greeting service.
-	 */
-	private final GreetingServiceAsync greetingService = GWT
-			.create(GreetingService.class);
-
-	//private VerticalPanel mainPanel = new VerticalPanel();
 	private final DockLayoutPanel mainPanel = new DockLayoutPanel(Unit.PX);
 	private TabLayoutPanel accountAccessPanel = new TabLayoutPanel(20, Unit.PX);
 	private TabLayoutPanel accountInfoPanel = new TabLayoutPanel(20, Unit.PX);
 	private LayoutPanel userPanel = new LayoutPanel();
+	private LayoutPanel mapPanel = new LayoutPanel();
 	private VerticalPanel logInStatusPanel = new VerticalPanel();
 	private VerticalPanel profilePanel = new VerticalPanel();
 	private VerticalPanel favoritePanel = new VerticalPanel();
@@ -84,13 +80,13 @@ public class Bikerack implements EntryPoint {
 	private PushButton logoutButton = new PushButton("Log out");
 	private PushButton clearButton = new PushButton("Clear");
 	private Label siteLabel = new Label("Bike Racks Locator");
-	private Label loginLabel = new Label(
-			"Sign in or create an account to save your favorites.");
+	private Label loginLabel = new Label("Sign in or create an account to save your favorites.");
 	private Label welcomeLabel = new Label("");
 	private Label loginTitleLabel = new Label("ACCOUNT LOGIN");
 	private Label registerTitleLabel = new Label("REGISTER NEW ACCOUNT");
 	private Label favoritePanelLabel = new Label("FAVORITES");
 	private Label profilePanelLabel = new Label("PROFILE");
+	private Label rackPanelLabel = new Label("BIKE RACKS");
 	private Label userNameLabel = new Label("Username");
 	private Label passwordLabel = new Label("Password");
 	private Label userNameLabel2 = new Label("Username");
@@ -105,12 +101,28 @@ public class Bikerack implements EntryPoint {
 	private PasswordTextBox passwordTextbox2 = new PasswordTextBox();
 	private LoginInfo loginInfo = null;
 	private boolean isLoggedIn = false;
+	private GoogleMap map;
 	
-	class MyClickEvent extends ClickEvent {};
 	/**
-	 * This is the entry point method. Where everything starts
+	 * Define our own ClickEvent class for UI Widgets, because for some reason GWT doesn't allow
+	 * us to create a new instance of the default ClickEvent class.
+	 */
+	class MyClickEvent extends ClickEvent {};
+	
+	/**
+	 * This is the entry point method. Where everything starts.
+	 * Main Panel is implemented as a Dock Panel, in which 5 widgets will be added North, South, East, West
+	 * and Center of the Dock. Widgets have to and will be added in the edges first and last one in center.
+	 * 			 			  Title (N)
+	 * 							I
+	 * 							I  
+	 * Rack/Search Panel-----Map API (C) -----User/Profile/Favorite Panel
+	 * 		(W)					I                  (E)
+	 * 							I
+	 * 			    Welcome Label/Signout Button (S)	
 	 */
 	public void onModuleLoad() {
+		testGetRacks();
 		// load app title on top
 		loadAppTitle();
 		// load login prompt or welcome message and logout, at bottom 
@@ -122,11 +134,7 @@ public class Bikerack implements EntryPoint {
 		// set login status of the web app to set visibility of the panels accordingly
 		setLoginStatus(getLoginInfo());
 		// Lastly, load the google map at the center of the screen
-		Maps.loadMapsApi("", "2", false, new Runnable() {
-		      public void run() {
-		        loadMapView();
-		      }
-		    });
+		loadMapView();
 		// Last step is add the entire thing to HTML host page
 		RootLayoutPanel.get().add(mainPanel);
 	}
@@ -140,194 +148,52 @@ public class Bikerack implements EntryPoint {
 	}
 	
 	/**
-	 * This loads the line right below the map
+	 * This loads the welcome line below the map
 	 * Both "Welcome!" label and signout button, and "Signin or Register to view...." label
 	 * (with signup and signin buttons next to it) are loaded, but both are set to invisible
 	 * on top of each other 
 	 */	
 	private void loadLoginStatusPanel() {
+		// Initialize the welcome label, modify according to User's Display name at Login
 		welcomeLabel = new Label("");
+		// What displayed when user is logged in
 		loggedInLabelPanel.add(welcomeLabel);
 		loggedInLabelPanel.add(logoutButton);
-	  
+		// What displayed when user isn't logged in
 		notLoggedInLabelPanel.add(loginLabel);
-		
+		// Put everything together
 		logInStatusPanel.add(loggedInLabelPanel);
 		logInStatusPanel.add(notLoggedInLabelPanel);
-		
 		mainPanel.addSouth(logInStatusPanel, 100);
 	}
 
 	/**
 	 * Everything about the user including login form, user profile, favorites, etc.
 	 * on the right side of the map (east of mainPanel)
-	 * NOTE : uses TabLayout for all of these different pages/functionalities
+	 * There are two layers, displayed and hidden according to user's login status:
+	 * 1/ Account Access Panel with login form and register form implemented as a panel with two tabs
+	 * 2/ Account Info Panel with profile and favorite window implemented as a panel with two tabs
 	 */
 	private void loadUserPanel() {
-		// TODO Auto-generated method stub
-		userNamePanel.add(userNameLabel);
-		userNamePanel.add(userNameTextbox);
-		passwordPanel.add(passwordLabel);
-		passwordPanel.add(passwordTextbox);
-		userNamePanel2.add(userNameLabel2);
-		userNamePanel2.add(userNameTextbox2);
-		passwordPanel2.add(passwordLabel2);
-		passwordPanel2.add(passwordTextbox2);
-		emailPanel.add(emailLabel);
-		emailPanel.add(emailTextbox);
-		nickNamePanel.add(nickNameLabel);
-		nickNamePanel.add(nickNameTextbox);
-		registerFormButtonsPanel.add(signupButton);
-		registerFormButtonsPanel.add(clearButton);
-		
-		loginPanel.add(loginTitleLabel);
-		loginPanel.add(userNamePanel);
-		loginPanel.add(passwordPanel);
-		loginPanel.add(loginButton);
-		registerPanel.add(registerTitleLabel);
-		registerPanel.add(userNamePanel2);
-		registerPanel.add(passwordPanel2);
-		registerPanel.add(emailPanel);
-		registerPanel.add(nickNamePanel);
-		registerPanel.add(registerFormButtonsPanel);
-		favoritePanel.add(favoritePanelLabel);
-		profilePanel.add(profilePanelLabel);
-		
-		accountAccessPanel.add(loginPanel);
-		accountAccessPanel.add(registerPanel);
-		accountInfoPanel.add(favoritePanel);
-		accountInfoPanel.add(profilePanel);
-		
-		//accountAccessContainer.add(accountAccessPanel);
-		//accountInfoContainer.add(accountInfoPanel);
+		// load the access panel
+		loadUserAccessPanel();
+		// load the info panel
+		loadUserInfoPanel();		
+		// Putting everything together
 		userPanel.add(accountAccessPanel);
 		userPanel.add(accountInfoPanel);
 		mainPanel.addEast(userPanel, 250);
-		
-		// Set textboxes so that when mouse clicked will allow typing
-		userNameTextbox.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				userNameTextbox.setFocus(true);
-			}
-		});
-		passwordTextbox.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				passwordTextbox.setFocus(true);
-			}
-		});
-		userNameTextbox2.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				userNameTextbox2.setFocus(true);
-			}
-		});
-		passwordTextbox2.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				passwordTextbox2.setFocus(true);
-			}
-		});
-		emailTextbox.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				emailTextbox.setFocus(true);
-			}
-		});
-		nickNameTextbox.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				nickNameTextbox.setFocus(true);
-			}
-		});
-		userNameTextbox.addKeyDownHandler(new KeyDownHandler() {
-			public void onKeyDown(KeyDownEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					loginButton.fireEvent(new MyClickEvent());
-				};
-			}
-		});
-		passwordTextbox.addKeyDownHandler(new KeyDownHandler() {
-			public void onKeyDown(KeyDownEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					loginButton.fireEvent(new MyClickEvent());
-				};
-			}
-		});
-		userNameTextbox2.addKeyDownHandler(new KeyDownHandler() {
-			public void onKeyDown(KeyDownEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					signupButton.fireEvent(new MyClickEvent());
-				};
-			}
-		});
-		passwordTextbox2.addKeyDownHandler(new KeyDownHandler() {
-			public void onKeyDown(KeyDownEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					signupButton.fireEvent(new MyClickEvent());
-				};
-			}
-		});
-		emailTextbox.addKeyDownHandler(new KeyDownHandler() {
-			public void onKeyDown(KeyDownEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					signupButton.fireEvent(new MyClickEvent());
-				};
-			}
-		});
-		nickNameTextbox.addKeyDownHandler(new KeyDownHandler() {
-			public void onKeyDown(KeyDownEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					signupButton.fireEvent(new MyClickEvent());
-				};
-			}
-		});
-		
-		// Listen for mouse events on the Login, logout and signup button.
-				loginButton.addClickHandler(new ClickHandler() {
-					public void onClick(ClickEvent event) {
-					String username = userNameTextbox.getValue();
-					String password = passwordTextbox.getValue();
-					if ((username != "") && (password != "")) {
-						String[] request = new String[2];
-						request[0] = username;
-						request[1] = password;
-						login(request);
-						}
-					}
-				});
-				logoutButton.addClickHandler(new ClickHandler() {
-					public void onClick(ClickEvent event) {
-						logout();
-					}
-				});		
-				signupButton.addClickHandler(new ClickHandler() {
-					public void onClick(ClickEvent event) {
-						String username = userNameTextbox2.getValue();
-						String password = passwordTextbox2.getValue();
-						String email = emailTextbox.getValue();
-						String nickName = nickNameTextbox.getValue();
-						if ((username != "") && (password != "") && (password != "") && (password != "")) {
-							String[] request = new String[4];
-							request[0] = email;
-							request[1] = nickName;
-							request[2] = username;
-							request[3] = password;
-							register(request);
-						}
-					}
-				});
-				clearButton.addClickHandler(new ClickHandler() {
-					public void onClick(ClickEvent event) {
-						userNameTextbox2.setValue("");
-						passwordTextbox2.setValue("");
-						emailTextbox.setValue("");
-						nickNameTextbox.setValue("");
-					}
-				});
 	}
-
+	
 	/**
 	 * Simple rack list or table view on the left side of the map (west of mainPanel),  
 	 * NOTE: uses TabLayout for future implementation of Searching
 	 */
 	private void loadRackPanel() {
-		// TODO Auto-generated method stub
+		// TODO Implement rack list display, only label for now
+		rackPanel.add(rackPanelLabel);
+		// Put everything together
+		mainPanel.addWest(rackPanel, 250);
 	}
 	
 	/**
@@ -343,20 +209,40 @@ public class Bikerack implements EntryPoint {
 	 */
 	private void buildMapView() {
 	    // Open a map centered on Vancouver, Canada
-	    LatLng vancouverCity = LatLng.newInstance(49.247,-123.114);
-	    final MapWidget map = new MapWidget(vancouverCity, 2);
-	    map.setSize("90%", "100%");
+	    LatLng vancouverCity = LatLng.create(49.247,-123.114);
+	    MapOptions mapOptions = MapOptions.create();	
+	    mapOptions.setCenter(vancouverCity);
+	    mapOptions.setMapTypeId(MapTypeId.ROADMAP);
 	    // Add some controls for the zoom level
-	    map.addControl(new LargeMapControl());
-	    map.setZoomLevel(11);
-	    // Add a marker
-	    map.addOverlay(new Marker(vancouverCity));
-	    // Add an info window to highlight a point of interest
-	    map.getInfoWindow().open(map.getCenter(),
-	        new InfoWindowContent("World's best city"));	   
-	    mainPanel.add(map);
+	    mapOptions.setZoom(11.0);
+	    // finalize the map
+	    //GoogleMap map = GoogleMap.create(mapPanel.getElement(),mapOptions);
+	    map = GoogleMap.create(mapPanel.getElement(),mapOptions);
+	    mainPanel.add(mapPanel);
+	    // Add markers, TODO: add the bike racks data here as markers
+	    LatLng[] latLngs = new LatLng[1];
+	    latLngs[0] = (vancouverCity);
+	    setMarkers(latLngs);
 	  }
 	
+	/**
+	 * Create markers for the map, based on the received dataset from the server
+	 * @param latLngs list of markers to create, might need to refactor this variable to global
+	 */
+	private void setMarkers(LatLng[] latLngs) {
+		MarkerOptions markerOptions = MarkerOptions.create();
+	    markerOptions.setPosition(latLngs[0]);
+	    markerOptions.setMap(map);
+	    markerOptions.setTitle("Hello World!");
+	    Marker myMarker = Marker.create(markerOptions);
+	    myMarker.addClickListener(new Marker.ClickHandler() {
+	      @Override
+	      public void handle(MouseEvent event) {
+	        map.setZoom(15.0);
+	      }
+	    });		
+	}
+
 	/**
 	 * this function determines which one of the loginStatusPanels will be visible,
 	 * the notLoggedIn or the loggedIn. 
@@ -391,7 +277,7 @@ public class Bikerack implements EntryPoint {
 		}
 	}
 	
-	/*
+	/**
 	 * Send login Info to be checked by the server, if server sends a non-null login info, then
 	 * set the cookie and set status of client to be logged in with that loginInfo. Server sents back
 	 * a null if info in login form is not a valid user
@@ -425,7 +311,7 @@ public class Bikerack implements EntryPoint {
 				});
 	}
 	
-	/*
+	/**
 	 * Register new account process, send request to server. If successful, will perform login operation
 	 * with LoginInfo sent back by server for confirmation.
 	 */
@@ -450,7 +336,7 @@ public class Bikerack implements EntryPoint {
 			});
 	}
 	
-	/*
+	/**
 	 * logout process, remove cookie from browser and set client login status to loggedout
 	 */
 	protected void logout() {
@@ -479,6 +365,202 @@ public class Bikerack implements EntryPoint {
 			welcomeLabel.setText("Welcome back " + loginInfo.getNickname() + "!");
 			return true;
 		}
+	}
+	
+	/**
+	 * For testing getting rack information
+	 */
+	private void testGetRacks() {
+		// TODO Auto-generated method stub
+		RackServiceAsync rackService = GWT.create(RackService.class);
+		rackService.getRacks(new AsyncCallback<Rack[]>() {
+			@Override
+			public void onFailure(Throwable caught) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void onSuccess(Rack[] result) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+	}
+	
+	/**
+	 * Creating user access panel, including a login form and a register form
+	 */
+	private void loadUserAccessPanel() {
+		// Creating login UI
+		userNamePanel.add(userNameLabel);
+		userNamePanel.add(userNameTextbox);
+		passwordPanel.add(passwordLabel);
+		passwordPanel.add(passwordTextbox);
+		
+		loginPanel.add(loginTitleLabel);
+		loginPanel.add(userNamePanel);
+		loginPanel.add(passwordPanel);
+		loginPanel.add(loginButton);
+		
+		// Creating register UI
+		userNamePanel2.add(userNameLabel2);
+		userNamePanel2.add(userNameTextbox2);
+		passwordPanel2.add(passwordLabel2);
+		passwordPanel2.add(passwordTextbox2);
+		emailPanel.add(emailLabel);
+		emailPanel.add(emailTextbox);
+		nickNamePanel.add(nickNameLabel);
+		nickNamePanel.add(nickNameTextbox);
+		registerFormButtonsPanel.add(signupButton);
+		registerFormButtonsPanel.add(clearButton);
+
+		registerPanel.add(registerTitleLabel);
+		registerPanel.add(userNamePanel2);
+		registerPanel.add(passwordPanel2);
+		registerPanel.add(emailPanel);
+		registerPanel.add(nickNamePanel);
+		registerPanel.add(registerFormButtonsPanel);
+		
+		// Put everything together
+		accountAccessPanel.add(loginPanel);
+		accountAccessPanel.add(registerPanel);
+		
+		// Add click and keyboard events for the textboxes and buttons
+		loadUserAccessPanelEvents();
+	}
+
+	/**
+	 * Load UI events of the login and register form, two things to do
+	 * 1/ When clicked, the textboxes will switch focus to themselves, allow typing
+	 * 2/ When Enter key is pressed while typing in the textboxes, the Login or Signup button 
+	 *    will be clicked according to the current form
+	 * 3/ Implement the login, signup buttons to send form info to server, signout button 
+	 *    and clear button to clear form
+	 */
+	private void loadUserAccessPanelEvents() {
+		// Implementing 1/
+		ClickHandler userNameFocus = new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				userNameTextbox.setFocus(true);
+			}
+		};
+		ClickHandler userNameFocus2 = new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				userNameTextbox2.setFocus(true);
+			}
+		};
+		ClickHandler passwordFocus = new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				passwordTextbox.setFocus(true);
+			}
+		};
+		ClickHandler passwordFocus2 = new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				passwordTextbox2.setFocus(true);
+			}
+		};
+		ClickHandler emailFocus = new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				emailTextbox.setFocus(true);
+			}
+		};
+		ClickHandler nicknameFocus = new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				nickNameTextbox.setFocus(true);
+			}
+		};
+		// Add the events to appropriate textboxes
+		userNameTextbox.addClickHandler(userNameFocus);
+		passwordTextbox.addClickHandler(passwordFocus);
+		userNameTextbox2.addClickHandler(userNameFocus2);
+		passwordTextbox2.addClickHandler(passwordFocus2);
+		emailTextbox.addClickHandler(emailFocus);
+		nickNameTextbox.addClickHandler(nicknameFocus);
+		
+		// Implementing 2/
+		KeyDownHandler loginButtonClick = new KeyDownHandler() {
+			public void onKeyDown(KeyDownEvent event) {
+				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+					loginButton.fireEvent(new MyClickEvent());
+				};
+			}
+		};
+		KeyDownHandler signupButtonClick = new KeyDownHandler() {
+			public void onKeyDown(KeyDownEvent event) {
+				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+					signupButton.fireEvent(new MyClickEvent());
+				};
+			}
+		};
+		// Add the events to appropriate textboxes
+		userNameTextbox.addKeyDownHandler(loginButtonClick);
+		passwordTextbox.addKeyDownHandler(loginButtonClick);
+		userNameTextbox2.addKeyDownHandler(signupButtonClick);
+		passwordTextbox2.addKeyDownHandler(signupButtonClick);
+		emailTextbox.addKeyDownHandler(signupButtonClick);
+		nickNameTextbox.addKeyDownHandler(signupButtonClick);
+		
+		// Implementing 3/ Listen for mouse events on the Login, Logout and Signup and Clear buttons.
+		loginButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+			// Retrieve info from the login form and call login on server
+			String username = userNameTextbox.getValue();
+			String password = passwordTextbox.getValue();
+			if ((username != "") && (password != "")) {
+				String[] request = new String[2];
+				request[0] = username;
+				request[1] = password;
+				login(request);
+				}
+			}
+		});
+		logoutButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+			// Logout method is local, initiate client log out procedure
+				logout();
+			}
+		});		
+		signupButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				// Retrieve info from register form and call register on server
+				String username = userNameTextbox2.getValue();
+				String password = passwordTextbox2.getValue();
+				String email = emailTextbox.getValue();
+				String nickName = nickNameTextbox.getValue();
+				if ((username != "") && (password != "") && (password != "") && (password != "")) {
+					String[] request = new String[4];
+					request[0] = email;
+					request[1] = nickName;
+					request[2] = username;
+					request[3] = password;
+					register(request);
+				}
+			}
+		});
+		clearButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				// Set textbox values to an empty string
+				userNameTextbox2.setValue("");
+				passwordTextbox2.setValue("");
+				emailTextbox.setValue("");
+				nickNameTextbox.setValue("");
+			}
+		});
+	}
+	
+	/**
+	 * Load the User Info Panel with two tabs, favorite tab and profile tab
+	 */
+	private void loadUserInfoPanel() {
+		// TODO Implement profile panel and favorite panel for the logged in user
+		// Just add the labels for now 
+		favoritePanel.add(favoritePanelLabel);
+		profilePanel.add(profilePanelLabel);
+		
+		// Put everything together
+		accountInfoPanel.add(favoritePanel);
+		accountInfoPanel.add(profilePanel);
 	}
 		
 	private void handleError(Throwable error) {

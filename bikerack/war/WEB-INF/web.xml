@@ -16,6 +16,15 @@
     <url-pattern>/bikerack/account</url-pattern>
   </servlet-mapping>
   
+     <servlet>
+    <servlet-name>RackService</servlet-name>
+    <servlet-class>com.codeunicorns.bikerack.server.RackServiceImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>RackService</servlet-name>
+    <url-pattern>/bikerack/rack</url-pattern>
+  </servlet-mapping>
   
   <!-- Default page to serve -->
   <welcome-file-list>

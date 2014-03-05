@@ -1,12 +1,17 @@
 package com.codeunicorns.bikerack.client;
 
-public class Rack {
+import java.io.Serializable;
+
+public class Rack implements Serializable {
 	private int streetNum;
 	private String streetName;
 	private char streetSide;
 	private String bIA;
 	private String skytrain;
 	private int numRacks;
+	
+	public Rack() {
+	}
 	
 	public Rack(int streetNum, String streetName, char streetSide, String bIA,
 			String skytrain, int numRacks) {
