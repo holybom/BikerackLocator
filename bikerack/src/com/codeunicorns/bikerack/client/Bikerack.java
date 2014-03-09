@@ -144,11 +144,7 @@ public class Bikerack implements EntryPoint {
 		RootLayoutPanel.get().add(mainPanel);
 	}
 
-	private void testSetRacks() {
-		// TODO Auto-generated method stub
-		
-	}
-
+	
 	/**
 	 * This loads the objects regarding App title on top, for cosmetics purpose
 	 * Can add a picture, etc. later
@@ -432,8 +428,19 @@ public class Bikerack implements EntryPoint {
 
 			@Override
 			public void onSuccess(Rack[] result) {
-				// TODO Auto-generated method stub
-				
+				if (result == null) {
+					Window.alert("Error getting bike racks data from server");
+				}
+				else {
+					for (Rack rack : result) {
+						System.out.println("Client: " + "St num " + rack.getStreetNum() + ","
+													  + "St name " + rack.getStreetName() + ","
+													  + "St side " + rack.getStreetSide() + ","
+													  + "Skytrain Station " + rack.getSkytrain() + ","
+													  + "BIA " + rack.getBIA() + ","
+													  + "# of racks " + rack.getNumRacks() + ".");
+					}
+				}
 			}
 		});
 	}
@@ -614,6 +621,64 @@ public class Bikerack implements EntryPoint {
 		accountInfoPanel.add(profilePanel);
 	}
 		
+	/**
+	 * Only admins can do this
+	 */
+	private void testSetRacks() {
+		// TODO Add appropriate arguments for loadData to load data to clients, parsed with the given params
+		AdminServiceAsync adminService = GWT.create(AdminService.class);
+		adminService.importData(new AsyncCallback<Boolean>() {
+					public void onFailure(Throwable error) {
+						handleError(error);
+					}
+
+					public void onSuccess(Boolean result) {
+						if (!result) {
+							//Window.alert("Import failed, try again");
+						}
+						//else Window.alert("Import successful, please proceed to parse");
+					}
+		});
+		adminService.getTitleLine(new AsyncCallback<String[]>() {
+			public void onFailure(Throwable error) {
+				handleError(error);
+			}
+
+			public void onSuccess(String[] result) {
+				if (result != null) {
+					System.out.println(result[0] + " " + result[1] + " " + result[2] + " " 
+									+ result[3] + " " + result[4] + " " + result[5]);
+				}
+				//else Window.alert("Dataset format changed, cannot get new dataset");
+					
+			}
+		});
+		adminService.loadData(null, new AsyncCallback<Boolean>() {
+				public void onFailure(Throwable error) {
+					handleError(error);
+				}
+
+				public void onSuccess(Boolean result) {
+					if (!result) {
+					//	Window.alert("Parse failed, try again");
+					}
+					//else Window.alert("Parse successful, new data loaded");
+				}
+		});
+		adminService.setTableView(null, new AsyncCallback<Boolean>() {
+			public void onFailure(Throwable error) {
+				handleError(error);
+			}
+
+			public void onSuccess(Boolean result) {	
+				if (!result) {
+					//Window.alert("Saving view settings failed, try again");
+				}
+				//else Window.alert("Settings saved");
+			}
+		});
+	}
+
 	private void handleError(Throwable error) {
 		Window.alert(error.getMessage());
 	}

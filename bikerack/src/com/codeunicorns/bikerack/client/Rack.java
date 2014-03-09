@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Rack implements Serializable {
 	private int streetNum;
 	private String streetName;
-	private char streetSide;
+	private String streetSide;
 	private String bIA;
 	private String skytrain;
 	private int numRacks;
@@ -13,7 +13,7 @@ public class Rack implements Serializable {
 	public Rack() {
 	}
 	
-	public Rack(int streetNum, String streetName, char streetSide, String bIA,
+	public Rack(int streetNum, String streetName, String streetSide, String bIA,
 			String skytrain, int numRacks) {
 		this.streetNum = streetNum;
 		this.streetName = streetName;
@@ -39,11 +39,11 @@ public class Rack implements Serializable {
 		this.streetName = streetName;
 	}
 
-	public char getStreetSide() {
+	public String getStreetSide() {
 		return streetSide;
 	}
 
-	public void setStreetSide(char streetSide) {
+	public void setStreetSide(String streetSide) {
 		this.streetSide = streetSide;
 	}
 

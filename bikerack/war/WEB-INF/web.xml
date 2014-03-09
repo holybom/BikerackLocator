@@ -6,7 +6,7 @@
          xmlns="http://java.sun.com/xml/ns/javaee">
 
   <!-- Servlets -->
-   <servlet>
+  <servlet>
     <servlet-name>AccountService</servlet-name>
     <servlet-class>com.codeunicorns.bikerack.server.AccountServiceImpl</servlet-class>
   </servlet>
@@ -16,7 +16,7 @@
     <url-pattern>/bikerack/account</url-pattern>
   </servlet-mapping>
   
-     <servlet>
+  <servlet>
     <servlet-name>RackService</servlet-name>
     <servlet-class>com.codeunicorns.bikerack.server.RackServiceImpl</servlet-class>
   </servlet>
@@ -25,7 +25,17 @@
     <servlet-name>RackService</servlet-name>
     <url-pattern>/bikerack/rack</url-pattern>
   </servlet-mapping>
+ 
+  <servlet>
+    <servlet-name>AdminService</servlet-name>
+    <servlet-class>com.codeunicorns.bikerack.server.AdminServiceImpl</servlet-class>
+  </servlet>
   
+  <servlet-mapping>
+    <servlet-name>AdminService</servlet-name>
+    <url-pattern>/bikerack/admin</url-pattern>
+  </servlet-mapping>
+   
   <!-- Default page to serve -->
   <welcome-file-list>
     <welcome-file>Bikerack.html</welcome-file>

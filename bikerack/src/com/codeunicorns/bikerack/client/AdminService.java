@@ -1,5 +1,8 @@
 package com.codeunicorns.bikerack.client;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -8,8 +11,9 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
  */
 @RemoteServiceRelativePath("admin")
 public interface AdminService extends RemoteService {
-	void setDataURL(String uri);
-	void importData();
-	void loadData();
-	void setTableView(String[] params);
+	Boolean setDataURL(String uri);
+	Boolean importData();
+	String[] getTitleLine();
+	Boolean loadData(String[] params);
+	Boolean setTableView(String[] params);
 }

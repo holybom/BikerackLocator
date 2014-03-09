@@ -18,8 +18,8 @@ import javax.jdo.Query;
 
 public class AccountServiceImpl extends RemoteServiceServlet implements AccountService {
 	private static final PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
-	private static String adminCode = "abcd0";
-	
+	private String adminCode = "abcd0";
+
 	/**
 	 * @param request string contains [username, password]
 	 */
