@@ -24,6 +24,8 @@ public class User {
 	@Persistent
 	private String password;
 	@Persistent
+	private boolean isAdmin;
+	@Persistent
 	private Date createDate;   
 	
 	
@@ -31,12 +33,13 @@ public class User {
 		this.createDate = new Date();
 	}
 	
-	public User(String emailAddress, String nickName, String userName, String password) {
+	public User(String emailAddress, String nickName, String userName, String password, boolean isAdmin) {
 		this();
 		this.emailAddress = emailAddress;
 		this.nickName = nickName;
 		this.userName = userName;
 		this.password = password;
+		this.isAdmin = isAdmin;
 	}
 
 	
@@ -78,5 +81,9 @@ public class User {
 
 	public String getUsername() {
 		return userName;
-	}	
+	}
+	
+	public boolean isAdmin() {
+		return isAdmin;
+	}
 }

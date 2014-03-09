@@ -1,5 +1,6 @@
 package com.codeunicorns.bikerack.server;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,18 +18,20 @@ import javax.jdo.Query;
 
 public class AccountServiceImpl extends RemoteServiceServlet implements AccountService {
 	private static final PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
+	private static String adminCode = "abcd0";
 	
+	/**
+	 * @param request string contains [username, password]
+	 */
 	public LoginInfo login(String[] request) {
 		// Enable this to wipe database for testing purpose
-		//deletePersistentAll();
+		deletePersistentAll();
 		LoginInfo loginInfo = null;
 		List<User> users = retrieveAllUsers();
 		for (int i = 0; i < users.size(); i++) {
 			User user = users.get(i);
 			if (user.getUsername().compareTo(request[0]) == 0 && user.getPassword().compareTo(request[1]) == 0) {
-				loginInfo = new LoginInfo();
-				loginInfo.setEmailAddress(user.getEmailAddress());
-				loginInfo.setNickname(user.getNickName());
+				loginInfo = new LoginInfo(user.getEmailAddress(), user.getNickName(), user.isAdmin());
 				break;
 			}
 		}
@@ -52,6 +55,11 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		return users;
 	}
 
+	/**
+	 * Check duplicate username
+	 * @param userName
+	 * @return
+	 */
 	private boolean checkDuplicate(String userName) {
 		PersistenceManager pm = PMF.getPersistenceManager();
 		boolean isDuplicate = false;
@@ -76,22 +84,32 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		}
 	}
 
-
+/**
+ * @param request string is [email, nickname, username, password, admin code];
+ */
 	public LoginInfo register(String[] request) {
+		assert(request.length == 5);
+		String emailAddress = request[0];
+		String nickName = request[1];
+		String userName = request[2];
+		String password = request[3];
+		String inputAdminCode = request[4];
 		PersistenceManager pm = PMF.getPersistenceManager();
-		if (checkDuplicate(request[2])) {
+		if (checkDuplicate(userName)) {
 			return null;
 		}
+		boolean isAdmin = false;
+		if (inputAdminCode.compareTo(adminCode) == 0) {
+			isAdmin = true;
+		}
 		try {
-		pm.makePersistent(new User(request[0],request[1],request[2],request[3]));
+		pm.makePersistent(new User(emailAddress, nickName, userName, password, isAdmin));
 		}
 		finally {
 			pm.refreshAll();
 			pm.close();
 		}
-		LoginInfo loginInfo = new LoginInfo();
-		loginInfo.setEmailAddress(request[0]);
-		loginInfo.setNickname(request[1]);
+		LoginInfo loginInfo = new LoginInfo(emailAddress, nickName, isAdmin);
 		return loginInfo;
 	}
 }

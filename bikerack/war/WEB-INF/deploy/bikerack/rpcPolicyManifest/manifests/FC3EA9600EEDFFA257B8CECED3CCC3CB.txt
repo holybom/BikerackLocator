@@ -1,2 +1,0 @@
-serviceClass: com.codeunicorns.bikerack.client.GreetingService
-path: B8B779F05BF9F77FACC29BB984A11DA6.gwt.rpc

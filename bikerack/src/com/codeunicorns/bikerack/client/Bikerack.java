@@ -74,6 +74,7 @@ public class Bikerack implements EntryPoint {
 	private HorizontalPanel passwordPanel2 = new HorizontalPanel();
 	private HorizontalPanel emailPanel = new HorizontalPanel();
 	private HorizontalPanel nickNamePanel = new HorizontalPanel();
+	private HorizontalPanel adminCodePanel = new HorizontalPanel();
 	private HorizontalPanel registerFormButtonsPanel = new HorizontalPanel();
 	private PushButton loginButton = new PushButton("Sign in");
 	private PushButton signupButton = new PushButton("Register");
@@ -93,10 +94,13 @@ public class Bikerack implements EntryPoint {
 	private Label passwordLabel2 = new Label("Password");
 	private Label nickNameLabel = new Label("Display name");
 	private Label emailLabel = new Label("Email");
+	private Label adminCodeLabel = new Label("Auth code");
+	private Label adminCodeLabel2 = new Label ("(for registering as admin only)");
 	private TextBox userNameTextbox = new TextBox();
 	private TextBox userNameTextbox2 = new TextBox();
 	private TextBox emailTextbox = new TextBox();
 	private TextBox nickNameTextbox = new TextBox();
+	private TextBox adminCodeTextbox = new TextBox();
 	private PasswordTextBox passwordTextbox = new PasswordTextBox();
 	private PasswordTextBox passwordTextbox2 = new PasswordTextBox();
 	private LoginInfo loginInfo = null;
@@ -122,6 +126,7 @@ public class Bikerack implements EntryPoint {
 	 * 			    Welcome Label/Signout Button (S)	
 	 */
 	public void onModuleLoad() {
+		testSetRacks();
 		testGetRacks();
 		// load app title on top
 		loadAppTitle();
@@ -137,6 +142,11 @@ public class Bikerack implements EntryPoint {
 		loadMapView();
 		// Last step is add the entire thing to HTML host page
 		RootLayoutPanel.get().add(mainPanel);
+	}
+
+	private void testSetRacks() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	/**
@@ -252,8 +262,6 @@ public class Bikerack implements EntryPoint {
 	 */
 	private void setLoginStatus(boolean isLoggedIn) {
 		if (isLoggedIn) {
-			// set cookie
-			Cookies.setCookie("bikeracklocator", loginInfo.getNickname());
 			// set welcome message
 			welcomeLabel.setText("Welcome back " + loginInfo.getNickname() + "!");
 			// select the favorites tab to display first
@@ -266,8 +274,6 @@ public class Bikerack implements EntryPoint {
 			userPanel.setWidgetVisible(accountInfoPanel, true);
 		}
 		else {
-			// remove cookie
-			Cookies.removeCookie("bikeracklocator");
 			// redisplay account/register and login prompt panels,
 			// and hide welcome label and account info panels
 			notLoggedInLabelPanel.setVisible(true);
@@ -284,7 +290,10 @@ public class Bikerack implements EntryPoint {
 	 * @param is an array of string containing user and password (simple implementation for now) 
 	 * to be sent to server for authentication
 	 */
-	protected void login(String[] loginRequest) {
+	protected void login(final String[] loginRequest) {
+		if (!checkInput(loginRequest)) {
+			return;
+		}
 		AccountServiceAsync loginService = GWT.create(AccountService.class);
 		loginService.login(loginRequest,
 				new AsyncCallback<LoginInfo>() {
@@ -294,11 +303,12 @@ public class Bikerack implements EntryPoint {
 
 					public void onSuccess(LoginInfo result) {
 							if (result != null) {
-								loginInfo = new LoginInfo();
-								loginInfo.setEmailAddress(result.getEmailAddress()); 
-								loginInfo.setNickname(result.getNickname());
+								loginInfo = new LoginInfo(result.getEmailAddress(), result.getNickname(), result.isAdmin());
 								// set login status
 								isLoggedIn = true;
+								// set cookie
+								String loginInfo = loginRequest[0] + " " + loginRequest[1];
+								Cookies.setCookie("bikeracklocator", loginInfo);
 								// reset the login boxes
 								userNameTextbox.setValue("");
 								passwordTextbox.setValue("");
@@ -314,8 +324,12 @@ public class Bikerack implements EntryPoint {
 	/**
 	 * Register new account process, send request to server. If successful, will perform login operation
 	 * with LoginInfo sent back by server for confirmation.
+	 * @param formRequest contains {email, nickName, username, password, adminCode};
 	 */
 	protected void register(final String[] formRequest) {
+		if (!checkInput(formRequest)) {
+			return;
+		}
 		AccountServiceAsync loginService = GWT.create(AccountService.class);
 		loginService.register(formRequest,
 				new AsyncCallback<LoginInfo>() {
@@ -327,6 +341,13 @@ public class Bikerack implements EntryPoint {
 						if (result != null) {
 							accountAccessPanel.selectTab(loginPanel);
 							clearButton.fireEvent(new MyClickEvent());
+							// Alert user if admin code was wrong
+							if (formRequest[4] != "") {
+								if (result.isAdmin()) {
+									Window.alert("You have been registered as Admin");
+								}
+								else Window.alert("Invalid admin code, you have been registered as a regular user");
+							}
 							Window.alert("Please log in using your new username and password");
 						}
 						else {
@@ -337,6 +358,33 @@ public class Bikerack implements EntryPoint {
 	}
 	
 	/**
+	 * 
+	 * @param request is {username, password} or {email, nickName, username, password, adminCode}
+	 * @return whether input is valid
+	 */
+	private boolean checkInput(String[] request) {
+		int i = 0;
+		// if request is from register form, then checks email separately and starts from 1 instead
+		if (request.length == 5) {	
+			if (request.length == 5 && !request[i].matches("^[0-9a-z]+(\\_[0-9a-z]+)*(\\.[0-9a-z]+(\\_[0-9a-z]+)*){0,1}\\@[0-9a-z]+\\.[0-9a-z]+$")) {
+				Window.alert("Invalid email");
+				return false;
+			}
+			i = 1;
+		}
+		// traverse through the request array and checks every remaining textbox.
+		while (i < request.length) {
+			if (request[i] == "" && i != 4) return false; 
+			if (!request[i].matches("^[0-9A-Za-z]{5,15}$")) {
+				Window.alert("Input must be 5-15 alphanumeric characters");
+				return false;
+			}
+			i++;
+		}
+		return true;
+	}
+
+	/**
 	 * logout process, remove cookie from browser and set client login status to loggedout
 	 */
 	protected void logout() {
@@ -344,11 +392,13 @@ public class Bikerack implements EntryPoint {
 		isLoggedIn = false;
 		welcomeLabel.setText("You have been logged out.");
 		setLoginStatus(false);
+		// remove cookie
+		Cookies.removeCookie("bikeracklocator");
 	}
 	
 	/**
-	 * Retrieve login info from browser by mean of cookie 
-	 * @return 
+	 * Retrieve login info from browser on first run by mean of cookie
+	 * @return true if already logged in, else false
 	 */
 	private boolean getLoginInfo() {
 		String cookieVal = Cookies.getCookie("bikeracklocator");
@@ -357,12 +407,12 @@ public class Bikerack implements EntryPoint {
 		return false;
 		}
 		else {
-			LoginInfo loginInfo = new LoginInfo();
-			loginInfo.setNickname(cookieVal);
-			this.loginInfo = loginInfo;
-			isLoggedIn = true;
-			setLoginStatus(isLoggedIn);
-			welcomeLabel.setText("Welcome back " + loginInfo.getNickname() + "!");
+			login(cookieVal.split(" "));
+			//loginInfo.setNickname(cookieVal);
+			//this.loginInfo = loginInfo;
+			//isLoggedIn = true;
+			//setLoginStatus(isLoggedIn);
+			//welcomeLabel.setText("Welcome back " + loginInfo.getNickname() + "!");
 			return true;
 		}
 	}
@@ -412,6 +462,8 @@ public class Bikerack implements EntryPoint {
 		emailPanel.add(emailTextbox);
 		nickNamePanel.add(nickNameLabel);
 		nickNamePanel.add(nickNameTextbox);
+		adminCodePanel.add(adminCodeLabel);
+		adminCodePanel.add(adminCodeTextbox);
 		registerFormButtonsPanel.add(signupButton);
 		registerFormButtonsPanel.add(clearButton);
 
@@ -420,6 +472,8 @@ public class Bikerack implements EntryPoint {
 		registerPanel.add(passwordPanel2);
 		registerPanel.add(emailPanel);
 		registerPanel.add(nickNamePanel);
+		registerPanel.add(adminCodePanel);
+		registerPanel.add(adminCodeLabel2);
 		registerPanel.add(registerFormButtonsPanel);
 		
 		// Put everything together
@@ -470,6 +524,11 @@ public class Bikerack implements EntryPoint {
 				nickNameTextbox.setFocus(true);
 			}
 		};
+		ClickHandler adminCodeFocus = new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				adminCodeTextbox.setFocus(true);
+			}
+		};
 		// Add the events to appropriate textboxes
 		userNameTextbox.addClickHandler(userNameFocus);
 		passwordTextbox.addClickHandler(passwordFocus);
@@ -477,7 +536,7 @@ public class Bikerack implements EntryPoint {
 		passwordTextbox2.addClickHandler(passwordFocus2);
 		emailTextbox.addClickHandler(emailFocus);
 		nickNameTextbox.addClickHandler(nicknameFocus);
-		
+		adminCodeTextbox.addClickHandler(adminCodeFocus);
 		// Implementing 2/
 		KeyDownHandler loginButtonClick = new KeyDownHandler() {
 			public void onKeyDown(KeyDownEvent event) {
@@ -500,6 +559,7 @@ public class Bikerack implements EntryPoint {
 		passwordTextbox2.addKeyDownHandler(signupButtonClick);
 		emailTextbox.addKeyDownHandler(signupButtonClick);
 		nickNameTextbox.addKeyDownHandler(signupButtonClick);
+		adminCodeTextbox.addKeyDownHandler(signupButtonClick);
 		
 		// Implementing 3/ Listen for mouse events on the Login, Logout and Signup and Clear buttons.
 		loginButton.addClickHandler(new ClickHandler() {
@@ -507,12 +567,8 @@ public class Bikerack implements EntryPoint {
 			// Retrieve info from the login form and call login on server
 			String username = userNameTextbox.getValue();
 			String password = passwordTextbox.getValue();
-			if ((username != "") && (password != "")) {
-				String[] request = new String[2];
-				request[0] = username;
-				request[1] = password;
-				login(request);
-				}
+			String[] request = {username, password};
+			login(request);
 			}
 		});
 		logoutButton.addClickHandler(new ClickHandler() {
@@ -528,14 +584,9 @@ public class Bikerack implements EntryPoint {
 				String password = passwordTextbox2.getValue();
 				String email = emailTextbox.getValue();
 				String nickName = nickNameTextbox.getValue();
-				if ((username != "") && (password != "") && (password != "") && (password != "")) {
-					String[] request = new String[4];
-					request[0] = email;
-					request[1] = nickName;
-					request[2] = username;
-					request[3] = password;
-					register(request);
-				}
+				String adminCode = adminCodeTextbox.getValue();
+				String[] request = {email, nickName, username, password, adminCode};
+				register(request);
 			}
 		});
 		clearButton.addClickHandler(new ClickHandler() {
