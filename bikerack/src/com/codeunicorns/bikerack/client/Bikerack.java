@@ -80,6 +80,8 @@ public class Bikerack implements EntryPoint {
 	private PushButton signupButton = new PushButton("Register");
 	private PushButton logoutButton = new PushButton("Log out");
 	private PushButton clearButton = new PushButton("Clear");
+	private PushButton hideRegisterButton = new PushButton("Hide register");
+	private PushButton showRegisterButton = new PushButton("Show register");
 	private Label siteLabel = new Label("Bike Racks Locator");
 	private Label loginLabel = new Label("Sign in or create an account to save your favorites.");
 	private Label welcomeLabel = new Label("");
@@ -127,7 +129,7 @@ public class Bikerack implements EntryPoint {
 	 */
 	public void onModuleLoad() {
 		testSetRacks();
-		testGetRacks();
+		//testGetRacks();
 		// load app title on top
 		loadAppTitle();
 		// load login prompt or welcome message and logout, at bottom 
@@ -170,6 +172,27 @@ public class Bikerack implements EntryPoint {
 		// Put everything together
 		logInStatusPanel.add(loggedInLabelPanel);
 		logInStatusPanel.add(notLoggedInLabelPanel);
+		// TODO: remove this
+		logInStatusPanel.add(hideRegisterButton);
+		logInStatusPanel.add(showRegisterButton);
+		showRegisterButton.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				// TODO Auto-generated method stub
+				accountAccessPanel.add(registerPanel);
+			}
+			
+		});
+		hideRegisterButton.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				// TODO Auto-generated method stub
+				accountAccessPanel.remove(registerPanel);
+			}
+		});
+		//
 		mainPanel.addSouth(logInStatusPanel, 100);
 	}
 
@@ -414,38 +437,6 @@ public class Bikerack implements EntryPoint {
 	}
 	
 	/**
-	 * For testing getting rack information
-	 */
-	private void testGetRacks() {
-		// TODO Auto-generated method stub
-		RackServiceAsync rackService = GWT.create(RackService.class);
-		rackService.getRacks(new AsyncCallback<Rack[]>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void onSuccess(Rack[] result) {
-				if (result == null) {
-					Window.alert("Error getting bike racks data from server");
-				}
-				else {
-					for (Rack rack : result) {
-						System.out.println("Client: " + "St num " + rack.getStreetNum() + ","
-													  + "St name " + rack.getStreetName() + ","
-													  + "St side " + rack.getStreetSide() + ","
-													  + "Skytrain Station " + rack.getSkytrain() + ","
-													  + "BIA " + rack.getBIA() + ","
-													  + "# of racks " + rack.getNumRacks() + ".");
-					}
-				}
-			}
-		});
-	}
-	
-	/**
 	 * Creating user access panel, including a login form and a register form
 	 */
 	private void loadUserAccessPanel() {
@@ -627,6 +618,17 @@ public class Bikerack implements EntryPoint {
 	private void testSetRacks() {
 		// TODO Add appropriate arguments for loadData to load data to clients, parsed with the given params
 		AdminServiceAsync adminService = GWT.create(AdminService.class);
+		testImportData(adminService);
+//		testGetTitleLine(adminService);
+//		testLoadData(adminService);
+//		testSetTableView(adminService);
+	}
+
+
+	/**
+	 * @param adminService
+	 */
+	private void testImportData(final AdminServiceAsync adminService) {
 		adminService.importData(new AsyncCallback<Boolean>() {
 					public void onFailure(Throwable error) {
 						handleError(error);
@@ -636,9 +638,17 @@ public class Bikerack implements EntryPoint {
 						if (!result) {
 							//Window.alert("Import failed, try again");
 						}
+						testGetTitleLine(adminService);
 						//else Window.alert("Import successful, please proceed to parse");
 					}
 		});
+	}
+
+
+	/**
+	 * @param adminService
+	 */
+	private void testGetTitleLine(final AdminServiceAsync adminService) {
 		adminService.getTitleLine(new AsyncCallback<String[]>() {
 			public void onFailure(Throwable error) {
 				handleError(error);
@@ -646,6 +656,7 @@ public class Bikerack implements EntryPoint {
 
 			public void onSuccess(String[] result) {
 				if (result != null) {
+					testLoadData(adminService);
 					System.out.println(result[0] + " " + result[1] + " " + result[2] + " " 
 									+ result[3] + " " + result[4] + " " + result[5]);
 				}
@@ -653,6 +664,12 @@ public class Bikerack implements EntryPoint {
 					
 			}
 		});
+	}
+
+	/**
+	 * @param adminService
+	 */
+	private void testLoadData(final AdminServiceAsync adminService) {
 		adminService.loadData(null, new AsyncCallback<Boolean>() {
 				public void onFailure(Throwable error) {
 					handleError(error);
@@ -662,9 +679,17 @@ public class Bikerack implements EntryPoint {
 					if (!result) {
 					//	Window.alert("Parse failed, try again");
 					}
+					testSetTableView(adminService);
 					//else Window.alert("Parse successful, new data loaded");
 				}
 		});
+	}
+
+
+	/**
+	 * @param adminService
+	 */
+	private void testSetTableView(AdminServiceAsync adminService) {
 		adminService.setTableView(null, new AsyncCallback<Boolean>() {
 			public void onFailure(Throwable error) {
 				handleError(error);
@@ -674,11 +699,44 @@ public class Bikerack implements EntryPoint {
 				if (!result) {
 					//Window.alert("Saving view settings failed, try again");
 				}
+				testGetRacks();
 				//else Window.alert("Settings saved");
 			}
 		});
 	}
 
+	/**
+	 * For testing getting rack information
+	 */
+	private void testGetRacks() {
+		// TODO Auto-generated method stub
+		RackServiceAsync rackService = GWT.create(RackService.class);
+		rackService.getRacks(new AsyncCallback<Rack[]>() {
+			@Override
+			public void onFailure(Throwable caught) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void onSuccess(Rack[] result) {
+				if (result == null) {
+					Window.alert("Error getting bike racks data from server");
+				}
+				else {
+					for (Rack rack : result) {
+						System.out.println("Client: " + "St num " + rack.getStreetNum() + ","
+													  + "St name " + rack.getStreetName() + ","
+													  + "St side " + rack.getStreetSide() + ","
+													  + "Skytrain Station " + rack.getSkytrain() + ","
+													  + "BIA " + rack.getBIA() + ","
+													  + "# of racks " + rack.getNumRacks() + ".");
+					}
+				}
+			}
+		});
+	}
+	
 	private void handleError(Throwable error) {
 		Window.alert(error.getMessage());
 	}

@@ -13,8 +13,8 @@ public class Rack implements Serializable {
 	public Rack() {
 	}
 	
-	public Rack(int streetNum, String streetName, String streetSide, String bIA,
-			String skytrain, int numRacks) {
+	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
+			String bIA, int numRacks) {
 		this.streetNum = streetNum;
 		this.streetName = streetName;
 		this.streetSide = streetSide;
