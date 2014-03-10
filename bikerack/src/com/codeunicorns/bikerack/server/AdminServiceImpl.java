@@ -127,10 +127,15 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 //						System.out.println("Row: " + rowCount + "; Column: " + i + "; " 
 //											+ titleLine[i-1] + ": " + rack[i]);
 //					}
-				Rack realRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], rack[5], Integer.parseInt(rack[6]));
-				racks.add(realRack);
+				try {
+					Rack realRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], rack[5], Integer.parseInt(rack[6]));
+					racks.add(realRack);
+				} catch (NumberFormatException e) {
+					// TODO: handle exception
+					System.out.println("Parsing failed at this line.");
+				}
 				// TODO: delete this line after done, just for testing
-				if (rowCount > 5) break;
+				// if (rowCount > 5) break;
 			}
 			br.close();
 		} catch (IOException e) {

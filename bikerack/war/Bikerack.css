@@ -1,1 +1,17 @@
 /** Add css rules here for your application. */
+
+.table {
+  border: 1px solid silver;
+  padding: 2px;
+  margin-bottom:6px;
+}
+
+.tableHeader {
+  background-color: #0CF;
+  color: white;
+}
+
+.tableContents {
+  text-align: right;
+  width:8em;
+}

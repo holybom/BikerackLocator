@@ -17,6 +17,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -58,14 +59,17 @@ public class Bikerack implements EntryPoint {
 	private final DockLayoutPanel mainPanel = new DockLayoutPanel(Unit.PX);
 	private TabLayoutPanel accountAccessPanel = new TabLayoutPanel(20, Unit.PX);
 	private TabLayoutPanel accountInfoPanel = new TabLayoutPanel(20, Unit.PX);
+	private TabLayoutPanel centralPanel = new TabLayoutPanel(20, Unit.PX);
 	private LayoutPanel userPanel = new LayoutPanel();
 	private LayoutPanel mapPanel = new LayoutPanel();
+	private LayoutPanel tableViewPanel = new LayoutPanel();
 	private VerticalPanel logInStatusPanel = new VerticalPanel();
 	private VerticalPanel profilePanel = new VerticalPanel();
 	private VerticalPanel favoritePanel = new VerticalPanel();
 	private VerticalPanel rackPanel = new VerticalPanel();
 	private VerticalPanel loginPanel = new VerticalPanel();
 	private VerticalPanel registerPanel = new VerticalPanel();
+	private HorizontalPanel importPanel = new HorizontalPanel();
 	private HorizontalPanel loggedInLabelPanel = new HorizontalPanel();
 	private HorizontalPanel notLoggedInLabelPanel = new HorizontalPanel();
 	private HorizontalPanel userNamePanel = new HorizontalPanel();
@@ -80,6 +84,10 @@ public class Bikerack implements EntryPoint {
 	private PushButton signupButton = new PushButton("Register");
 	private PushButton logoutButton = new PushButton("Log out");
 	private PushButton clearButton = new PushButton("Clear");
+	private PushButton setURLButton = new PushButton("Set URL");
+	private PushButton importButton = new PushButton("Import");
+	private PushButton getTitlesButton = new PushButton("Get Titles");
+	private PushButton loadButton = new PushButton("Load");
 	private PushButton hideRegisterButton = new PushButton("Hide register");
 	private PushButton showRegisterButton = new PushButton("Show register");
 	private Label siteLabel = new Label("Bike Racks Locator");
@@ -103,11 +111,13 @@ public class Bikerack implements EntryPoint {
 	private TextBox emailTextbox = new TextBox();
 	private TextBox nickNameTextbox = new TextBox();
 	private TextBox adminCodeTextbox = new TextBox();
+	private TextBox URLTextBox = new TextBox();
 	private PasswordTextBox passwordTextbox = new PasswordTextBox();
 	private PasswordTextBox passwordTextbox2 = new PasswordTextBox();
 	private LoginInfo loginInfo = null;
 	private boolean isLoggedIn = false;
 	private GoogleMap map;
+	private FlexTable racksTable = new FlexTable();
 	
 	/**
 	 * Define our own ClickEvent class for UI Widgets, because for some reason GWT doesn't allow
@@ -230,11 +240,13 @@ public class Bikerack implements EntryPoint {
 	 */
 	private void loadMapView() {
 		 buildMapView();
+		 buildTableView();
+		 buildImportView();
+		 mainPanel.add(centralPanel);
 	}
 	
 	/**
-	 * basically does what loadMapView does for now, split because might need to add
-	 * intense markers making and loading later in this function
+	 * might need to add intense markers making and loading later
 	 */
 	private void buildMapView() {
 	    // Open a map centered on Vancouver, Canada
@@ -247,7 +259,7 @@ public class Bikerack implements EntryPoint {
 	    // finalize the map
 	    //GoogleMap map = GoogleMap.create(mapPanel.getElement(),mapOptions);
 	    map = GoogleMap.create(mapPanel.getElement(),mapOptions);
-	    mainPanel.add(mapPanel);
+	    centralPanel.add(mapPanel);
 	    // Add markers, TODO: add the bike racks data here as markers
 	    LatLng[] latLngs = new LatLng[1];
 	    latLngs[0] = (vancouverCity);
@@ -255,19 +267,54 @@ public class Bikerack implements EntryPoint {
 	  }
 	
 	/**
+	 * foo
+	 */
+	private void buildTableView() {
+		racksTable.setStyleName("table");
+		racksTable.getRowFormatter().setStyleName(0, "tableHeader");
+		racksTable.setText(0, 0, "St number");
+		racksTable.setText(0, 1, "St Name");
+		racksTable.setText(0, 2, "St Side");
+		racksTable.setText(0, 3, "Skytrain");
+		racksTable.setText(0, 4, "BIA");
+		racksTable.setText(0, 5, "# of racks");
+		racksTable.addStyleName("table");
+		racksTable.getRowFormatter().addStyleName(0, "tableHeader");
+		/* table is filled with data in the getRacks method */
+		tableViewPanel.add(racksTable);
+	    centralPanel.add(tableViewPanel);
+	}
+	
+	/**
+	 * foo
+	 */
+	private void buildImportView() {
+		importPanel.add(URLTextBox);
+		importButton.setEnabled(false);
+		getTitlesButton.setEnabled(false);
+		loadButton.setEnabled(false);
+		importPanel.add(setURLButton);
+		importPanel.add(importButton);
+		importPanel.add(getTitlesButton);
+		importPanel.add(loadButton);
+		centralPanel.add(importPanel);
+	}
+	
+	/**
 	 * Create markers for the map, based on the received dataset from the server
 	 * @param latLngs list of markers to create, might need to refactor this variable to global
 	 */
-	private void setMarkers(LatLng[] latLngs) {
+	private void setMarkers(final LatLng[] latLngs) {
 		MarkerOptions markerOptions = MarkerOptions.create();
 	    markerOptions.setPosition(latLngs[0]);
 	    markerOptions.setMap(map);
 	    markerOptions.setTitle("Hello World!");
-	    Marker myMarker = Marker.create(markerOptions);
+	    final Marker myMarker = Marker.create(markerOptions);
 	    myMarker.addClickListener(new Marker.ClickHandler() {
 	      @Override
 	      public void handle(MouseEvent event) {
-	        map.setZoom(15.0);
+	    	  map.setCenter(myMarker.getPosition());
+	    	  map.setZoom(15.0);
 	      }
 	    });		
 	}
@@ -724,13 +771,16 @@ public class Bikerack implements EntryPoint {
 					Window.alert("Error getting bike racks data from server");
 				}
 				else {
+					int row = 1;
 					for (Rack rack : result) {
-						System.out.println("Client: " + "St num " + rack.getStreetNum() + ","
-													  + "St name " + rack.getStreetName() + ","
-													  + "St side " + rack.getStreetSide() + ","
-													  + "Skytrain Station " + rack.getSkytrain() + ","
-													  + "BIA " + rack.getBIA() + ","
-													  + "# of racks " + rack.getNumRacks() + ".");
+						racksTable.setText(row, 0, Integer.toString(rack.getStreetNum()));
+						racksTable.setText(row, 1, rack.getStreetName());
+						racksTable.setText(row, 2, rack.getStreetSide());
+						racksTable.setText(row, 3, rack.getSkytrain());
+						racksTable.setText(row, 4, rack.getBIA());
+						racksTable.setText(row, 5, Integer.toString(rack.getNumRacks()));
+						racksTable.getRowFormatter().setStyleName(row, "tableContents");
+						row++;
 					}
 				}
 			}
