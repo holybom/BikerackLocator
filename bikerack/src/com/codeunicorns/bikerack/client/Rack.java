@@ -23,6 +23,14 @@ public class Rack implements Serializable {
 		this.numRacks = numRacks;
 	}
 
+	public String getbIA() {
+		return bIA;
+	}
+
+	public void setbIA(String bIA) {
+		this.bIA = bIA;
+	}
+
 	public int getStreetNum() {
 		return streetNum;
 	}
@@ -47,14 +55,6 @@ public class Rack implements Serializable {
 		this.streetSide = streetSide;
 	}
 
-	public String getBIA() {
-		return bIA;
-	}
-
-	public void setBIA(String bIA) {
-		this.bIA = bIA;
-	}
-
 	public String getSkytrain() {
 		return skytrain;
 	}
@@ -69,5 +69,5 @@ public class Rack implements Serializable {
 
 	public void setNumRacks(int numRacks) {
 		this.numRacks = numRacks;
-	}	
+	}
 }

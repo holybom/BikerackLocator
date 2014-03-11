@@ -1,8 +1,11 @@
 package com.codeunicorns.bikerack.client;
 
+import java.util.ArrayList;
+
 import com.codeunicorns.bikerack.shared.FieldVerifier;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JsArray;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
@@ -32,13 +35,21 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.maps.gwt.client.Geocoder;
+import com.google.maps.gwt.client.Geocoder.Callback;
+import com.google.maps.gwt.client.GeocoderRequest;
+import com.google.maps.gwt.client.GeocoderResult;
+import com.google.maps.gwt.client.GeocoderStatus;
 import com.google.maps.gwt.client.GoogleMap;
+import com.google.maps.gwt.client.InfoWindow;
+import com.google.maps.gwt.client.InfoWindowOptions;
 import com.google.maps.gwt.client.MapOptions;
 import com.google.maps.gwt.client.LatLng;
 import com.google.maps.gwt.client.MapTypeId;
 import com.google.maps.gwt.client.Marker;
 import com.google.maps.gwt.client.MarkerOptions;
 import com.google.maps.gwt.client.MouseEvent;
+import com.google.maps.gwt.client.Size;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.Cookies;
@@ -118,6 +129,8 @@ public class Bikerack implements EntryPoint {
 	private boolean isLoggedIn = false;
 	private GoogleMap map;
 	private FlexTable racksTable = new FlexTable();
+	private Rack[] racks;
+	ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 	
 	/**
 	 * Define our own ClickEvent class for UI Widgets, because for some reason GWT doesn't allow
@@ -260,10 +273,10 @@ public class Bikerack implements EntryPoint {
 	    //GoogleMap map = GoogleMap.create(mapPanel.getElement(),mapOptions);
 	    map = GoogleMap.create(mapPanel.getElement(),mapOptions);
 	    centralPanel.add(mapPanel);
-	    // Add markers, TODO: add the bike racks data here as markers
-	    LatLng[] latLngs = new LatLng[1];
-	    latLngs[0] = (vancouverCity);
-	    setMarkers(latLngs);
+//	    // Add markers, TODO: add the bike racks data here as markers
+//	    LatLng[] latLngs = new LatLng[1];
+//	    latLngs[0] = (vancouverCity);
+//	    setMarkers(latLngs);
 	  }
 	
 	/**
@@ -300,24 +313,6 @@ public class Bikerack implements EntryPoint {
 		centralPanel.add(importPanel);
 	}
 	
-	/**
-	 * Create markers for the map, based on the received dataset from the server
-	 * @param latLngs list of markers to create, might need to refactor this variable to global
-	 */
-	private void setMarkers(final LatLng[] latLngs) {
-		MarkerOptions markerOptions = MarkerOptions.create();
-	    markerOptions.setPosition(latLngs[0]);
-	    markerOptions.setMap(map);
-	    markerOptions.setTitle("Hello World!");
-	    final Marker myMarker = Marker.create(markerOptions);
-	    myMarker.addClickListener(new Marker.ClickHandler() {
-	      @Override
-	      public void handle(MouseEvent event) {
-	    	  map.setCenter(myMarker.getPosition());
-	    	  map.setZoom(15.0);
-	      }
-	    });		
-	}
 
 	/**
 	 * this function determines which one of the loginStatusPanels will be visible,
@@ -771,13 +766,15 @@ public class Bikerack implements EntryPoint {
 					Window.alert("Error getting bike racks data from server");
 				}
 				else {
+					racks = result;
+					drawBikeracks();
 					int row = 1;
 					for (Rack rack : result) {
 						racksTable.setText(row, 0, Integer.toString(rack.getStreetNum()));
 						racksTable.setText(row, 1, rack.getStreetName());
 						racksTable.setText(row, 2, rack.getStreetSide());
 						racksTable.setText(row, 3, rack.getSkytrain());
-						racksTable.setText(row, 4, rack.getBIA());
+						racksTable.setText(row, 4, rack.getbIA());
 						racksTable.setText(row, 5, Integer.toString(rack.getNumRacks()));
 						racksTable.getRowFormatter().setStyleName(row, "tableContents");
 						row++;
@@ -787,6 +784,62 @@ public class Bikerack implements EntryPoint {
 		});
 	}
 	
+	protected void drawBikeracks() {
+		// TODO Auto-generated method stub
+		if (racks == null) return;
+		Geocoder geocoder = Geocoder.create();
+		for (final Rack rack : racks) {
+			GeocoderRequest request = GeocoderRequest.create();
+			String address = rack.getStreetNum() + "," + rack.getStreetName() + "," + rack.getStreetSide() + "," + "vancouver" + "," +"canada";
+			request.setAddress(address);
+			geocoder.geocode(request, new Callback() {
+			      public void handle(JsArray<GeocoderResult> results, GeocoderStatus status) {
+			          if (status == GeocoderStatus.OK) {
+			        	  LatLng latlong = results.get(0).getGeometry().getLocation();
+			        	  setRackMarker(rack, latlong);
+			          }
+			      }
+			});
+		}
+	}
+	
+	/**
+	 * Create markers for the map, based on the received dataset from the server
+	 * @param latLngs list of markers to create, might need to refactor this variable to global
+	 */
+	private void setRackMarker(Rack rack, LatLng latLng) {
+		MarkerOptions markerOptions = MarkerOptions.create();
+	    markerOptions.setPosition(latLng);
+	    markerOptions.setMap(map);
+	    final Marker marker = Marker.create(markerOptions);
+	    final InfoWindow tooltip = createTooltip(rack, latLng);
+	    if (!tooltips.contains(tooltip)) tooltips.add(tooltip);
+	    marker.addClickListener(new Marker.ClickHandler() {
+		      @Override
+		      public void handle(MouseEvent event) {
+		    	  for (InfoWindow tooltip : tooltips) tooltip.close();
+		    	  tooltip.open(map, marker);
+		    }
+	    });		
+	}
+
+	private InfoWindow createTooltip(Rack rack, LatLng latlng) {
+	    InfoWindowOptions tooltipOpt = InfoWindowOptions.create();
+	    tooltipOpt.setPosition(latlng);
+	    //tooltipOpt.setPixelOffset(Size.create(30, 20));
+	    String ttSkytrain = "";
+	    String ttBIA = "";
+	    if (rack.getSkytrain().length() != 0) ttSkytrain = "Near " + rack.getSkytrain() + " Skytrain station. ";
+	    if (rack.getbIA().length() != 0) ttBIA = "Business Improvement Associations Initials: " + rack.getbIA() + ". ";
+	    tooltipOpt.setContent("Address: " + rack.getStreetNum() + " " + rack.getStreetName() 
+	    					+ " " + rack.getStreetSide() + ", Vancouver, BC. " + ttSkytrain 
+	    					+ "No. of Racks: " + rack.getNumRacks() + ". "+ ttBIA);
+	    InfoWindow tooltip = InfoWindow.create();
+	    tooltip.setOptions(tooltipOpt);
+	    return tooltip;
+	}
+
+
 	private void handleError(Throwable error) {
 		Window.alert(error.getMessage());
 	}

@@ -14,10 +14,17 @@ import java.util.LinkedList;
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManagerFactory;
 
+import com.google.gwt.core.client.JsArray;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.codeunicorns.bikerack.client.AdminService;
 import com.codeunicorns.bikerack.client.Rack;
-
+import com.google.maps.gwt.client.Geocoder;
+import com.google.maps.gwt.client.Geocoder.Callback;
+import com.google.maps.gwt.client.GeocoderRequest;
+import com.google.maps.gwt.client.GeocoderResult;
+import com.google.maps.gwt.client.GeocoderStatus;
+//import com.google.maps.gwt.client.Geocoder.Callback;
+import com.google.maps.gwt.client.LatLng;
 
 public class AdminServiceImpl extends RemoteServiceServlet implements AdminService {
 	private String host = "http://www.ugrad.cs.ubc.ca/~b4s8/";
@@ -36,6 +43,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	private LinkedList<String> params = new LinkedList<String>();
 	private String[] titleLine;
 	private String line;
+	private Geocoder geocoder;
 	
 	public AdminServiceImpl() {
 		// construct default URL TODO: for testing purpose, so may delete after 
@@ -45,6 +53,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		//geocoder = Geocoder.create();
 	}
 	
 	public Boolean setDataURL(String url) {
@@ -123,13 +132,8 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 				if (emptyLine(line)) continue;
 				rowCount++;
 				String[] rack = line.split(delimiter, titleLine.length + 2);
-//				for (int i = 1; i < titleLine.length + 1; i++) {
-//						System.out.println("Row: " + rowCount + "; Column: " + i + "; " 
-//											+ titleLine[i-1] + ": " + rack[i]);
-//					}
 				try {
-					Rack realRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], rack[5], Integer.parseInt(rack[6]));
-					racks.add(realRack);
+					createRack(rack);
 				} catch (NumberFormatException e) {
 					// TODO: handle exception
 					System.out.println("Parsing failed at this line.");
@@ -144,6 +148,24 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 		}
 		setRacks();
 		return new Boolean(true);
+	}
+
+	private void createRack(final String[] rack) {
+		// TODO Auto-generated method stub
+//		GeocoderRequest request = GeocoderRequest.create();
+//		String address = rack[1] + "," + rack[2] + "," + rack[3] + "," + "vancouver" + "," +"canada";
+//		request.setAddress(address);
+//		geocoder.geocode(request, new Callback() {
+//			@Override
+//		      public void handle(JsArray<GeocoderResult> results, GeocoderStatus status) {
+//		          if (status == GeocoderStatus.OK) {
+//		        	  LatLng latlong = results.get(0).getGeometry().getLocation();
+		        	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
+		        			  				rack[5], Integer.parseInt(rack[6]));
+		        	  racks.add(clientRack);
+//		          }
+//		      }
+//		});
 	}
 
 	public Boolean setTableView(String[] params) {
