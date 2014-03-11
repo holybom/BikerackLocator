@@ -25,7 +25,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	 */
 	public LoginInfo login(String[] request) {
 		// Enable this to wipe database for testing purpose
-		deletePersistentAll();
+		//deletePersistentAll();
 		LoginInfo loginInfo = null;
 		List<User> users = retrieveAllUsers();
 		for (int i = 0; i < users.size(); i++) {

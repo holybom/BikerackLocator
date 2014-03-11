@@ -33,8 +33,9 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		return params;
 	}
 	
-	public void setRacks(Rack[] racks) {
+	public boolean setRacks(Rack[] racks) {
 		this.racks = racks;
+		return true; 
 	}
 	
 	public void setParams(String[] params) {

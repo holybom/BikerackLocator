@@ -16,6 +16,7 @@ import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.codeunicorns.bikerack.client.LoginInfo;
 import com.codeunicorns.bikerack.client.AccountService;
 import com.codeunicorns.bikerack.client.AccountServiceAsync;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -80,6 +81,7 @@ public class Bikerack implements EntryPoint {
 	private VerticalPanel rackPanel = new VerticalPanel();
 	private VerticalPanel loginPanel = new VerticalPanel();
 	private VerticalPanel registerPanel = new VerticalPanel();
+	private VerticalPanel importPanel2 = new VerticalPanel();
 	private HorizontalPanel importPanel = new HorizontalPanel();
 	private HorizontalPanel loggedInLabelPanel = new HorizontalPanel();
 	private HorizontalPanel notLoggedInLabelPanel = new HorizontalPanel();
@@ -99,8 +101,8 @@ public class Bikerack implements EntryPoint {
 	private PushButton importButton = new PushButton("Import");
 	private PushButton getTitlesButton = new PushButton("Get Titles");
 	private PushButton loadButton = new PushButton("Load");
-	private PushButton hideRegisterButton = new PushButton("Hide register");
-	private PushButton showRegisterButton = new PushButton("Show register");
+	//private PushButton hideRegisterButton = new PushButton("Hide register");
+	//private PushButton showRegisterButton = new PushButton("Show register");
 	private Label siteLabel = new Label("Bike Racks Locator");
 	private Label loginLabel = new Label("Sign in or create an account to save your favorites.");
 	private Label welcomeLabel = new Label("");
@@ -117,6 +119,7 @@ public class Bikerack implements EntryPoint {
 	private Label emailLabel = new Label("Email");
 	private Label adminCodeLabel = new Label("Auth code");
 	private Label adminCodeLabel2 = new Label ("(for registering as admin only)");
+	private Label titleLineLabel = new Label("");
 	private TextBox userNameTextbox = new TextBox();
 	private TextBox userNameTextbox2 = new TextBox();
 	private TextBox emailTextbox = new TextBox();
@@ -130,7 +133,19 @@ public class Bikerack implements EntryPoint {
 	private GoogleMap map;
 	private FlexTable racksTable = new FlexTable();
 	private Rack[] racks;
-	ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
+	private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
+	private String dataURL;
+	private AdminServiceAsync adminService;
+	private AccountServiceAsync accountService;
+	private RackServiceAsync rackService;
+	private Boolean dataGeocoded = false;
+	private String[] titleLine;
+	private boolean geoCode = false;
+	//private boolean gotRacks = false;
+	private boolean triedLoggedIn = false;
+	private boolean triedGetRacks = false;
+	private Geocoder geocoder = Geocoder.create();
+	private int geocodeCount = 0;
 	
 	/**
 	 * Define our own ClickEvent class for UI Widgets, because for some reason GWT doesn't allow
@@ -151,8 +166,11 @@ public class Bikerack implements EntryPoint {
 	 * 			    Welcome Label/Signout Button (S)	
 	 */
 	public void onModuleLoad() {
-		testSetRacks();
-		//testGetRacks();
+		//testSetRacks();
+		accountService = GWT.create(AccountService.class);
+		rackService = GWT.create(RackService.class);
+		adminService = null;
+		testGetRacks();
 		// load app title on top
 		loadAppTitle();
 		// load login prompt or welcome message and logout, at bottom 
@@ -161,10 +179,10 @@ public class Bikerack implements EntryPoint {
 		loadRackPanel();
 		// load user login/register form, user profile, favorites and maybe logout button on the right side
 		loadUserPanel();
-		// set login status of the web app to set visibility of the panels accordingly
-		setLoginStatus(getLoginInfo());
 		// Lastly, load the google map at the center of the screen
 		loadMapView();
+		// set login status of the web app to set visibility of the panels accordingly
+		setLoginStatus(getLoginInfo());
 		// Last step is add the entire thing to HTML host page
 		RootLayoutPanel.get().add(mainPanel);
 	}
@@ -196,25 +214,25 @@ public class Bikerack implements EntryPoint {
 		logInStatusPanel.add(loggedInLabelPanel);
 		logInStatusPanel.add(notLoggedInLabelPanel);
 		// TODO: remove this
-		logInStatusPanel.add(hideRegisterButton);
-		logInStatusPanel.add(showRegisterButton);
-		showRegisterButton.addClickHandler(new ClickHandler() {
-
-			@Override
-			public void onClick(ClickEvent event) {
-				// TODO Auto-generated method stub
-				accountAccessPanel.add(registerPanel);
-			}
-			
-		});
-		hideRegisterButton.addClickHandler(new ClickHandler() {
-
-			@Override
-			public void onClick(ClickEvent event) {
-				// TODO Auto-generated method stub
-				accountAccessPanel.remove(registerPanel);
-			}
-		});
+		//logInStatusPanel.add(hideRegisterButton);
+		//logInStatusPanel.add(showRegisterButton);
+//		showRegisterButton.addClickHandler(new ClickHandler() {
+//
+//			@Override
+//			public void onClick(ClickEvent event) {
+//				// TODO Auto-generated method stub
+//				accountAccessPanel.add(registerPanel);
+//			}
+//			
+//		});
+//		hideRegisterButton.addClickHandler(new ClickHandler() {
+//
+//			@Override
+//			public void onClick(ClickEvent event) {
+//				// TODO Auto-generated method stub
+//				accountAccessPanel.remove(registerPanel);
+//			}
+//		});
 		//
 		mainPanel.addSouth(logInStatusPanel, 100);
 	}
@@ -276,7 +294,8 @@ public class Bikerack implements EntryPoint {
 //	    // Add markers, TODO: add the bike racks data here as markers
 //	    LatLng[] latLngs = new LatLng[1];
 //	    latLngs[0] = (vancouverCity);
-//	    setMarkers(latLngs);
+	    //while (!triedGetRacks) {};
+	    if (racks != null && racks.length != 0 && racks[0].getLat() < 9999 && racks[0].getLng() < 9999)	drawBikeracks();
 	  }
 	
 	/**
@@ -303,16 +322,50 @@ public class Bikerack implements EntryPoint {
 	 */
 	private void buildImportView() {
 		importPanel.add(URLTextBox);
-		importButton.setEnabled(false);
-		getTitlesButton.setEnabled(false);
+		getDataURL();
+		//importButton.setEnabled(false);
+		//getTitlesButton.setEnabled(false);
 		loadButton.setEnabled(false);
 		importPanel.add(setURLButton);
 		importPanel.add(importButton);
-		importPanel.add(getTitlesButton);
+		//importPanel.add(getTitlesButton);
 		importPanel.add(loadButton);
-		centralPanel.add(importPanel);
+		importPanel2.add(importPanel);
+		importPanel2.add(titleLineLabel);
+		//centralPanel.add(importPanel2);
+		setImportButtonEvents();
 	}
 	
+	private void setImportButtonEvents() {
+		// TODO Auto-generated method stub
+		setURLButton.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				if (URLTextBox.getValue().length() != 0) {
+					setURLButton.setEnabled(false);
+					importButton.setEnabled(false);
+					loadButton.setEnabled(false);
+					setDataURL(URLTextBox.getValue());
+				}
+			}});
+		importButton.addClickHandler(new ClickHandler(){
+			@Override
+			public void onClick(ClickEvent event) {
+				setURLButton.setEnabled(false);
+				importButton.setEnabled(false);
+				loadButton.setEnabled(false);
+				testImportData(adminService);
+			}});
+		loadButton.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				setURLButton.setEnabled(false);
+				importButton.setEnabled(false);
+				loadButton.setEnabled(false);
+				testLoadData(adminService);
+			}});		
+	}
+
 
 	/**
 	 * this function determines which one of the loginStatusPanels will be visible,
@@ -333,6 +386,8 @@ public class Bikerack implements EntryPoint {
 			loggedInLabelPanel.setVisible(true);
 			userPanel.setWidgetVisible(accountAccessPanel, false);
 			userPanel.setWidgetVisible(accountInfoPanel, true);
+			if (loginInfo != null && loginInfo.isAdmin()) centralPanel.add(importPanel);
+			else centralPanel.remove(importPanel);
 		}
 		else {
 			// redisplay account/register and login prompt panels,
@@ -341,6 +396,9 @@ public class Bikerack implements EntryPoint {
 			loggedInLabelPanel.setVisible(false);
 			userPanel.setWidgetVisible(accountAccessPanel, true);
 			userPanel.setWidgetVisible(accountInfoPanel, false);
+			centralPanel.remove(importPanel);
+			if (loginInfo != null && loginInfo.isAdmin()) centralPanel.add(importPanel);
+			centralPanel.remove(importPanel);
 		}
 	}
 	
@@ -359,14 +417,17 @@ public class Bikerack implements EntryPoint {
 		loginService.login(loginRequest,
 				new AsyncCallback<LoginInfo>() {
 					public void onFailure(Throwable error) {
+						triedLoggedIn = true;
 						handleError(error);
 					}
 
 					public void onSuccess(LoginInfo result) {
+						triedLoggedIn = true;
 							if (result != null) {
 								loginInfo = new LoginInfo(result.getEmailAddress(), result.getNickname(), result.isAdmin());
 								// set login status
 								isLoggedIn = true;
+								if (loginInfo.isAdmin()) adminService = GWT.create(AdminService.class);
 								// set cookie
 								String loginInfo = loginRequest[0] + " " + loginRequest[1];
 								Cookies.setCookie("bikeracklocator", loginInfo);
@@ -474,7 +535,8 @@ public class Bikerack implements EntryPoint {
 			//isLoggedIn = true;
 			//setLoginStatus(isLoggedIn);
 			//welcomeLabel.setText("Welcome back " + loginInfo.getNickname() + "!");
-			return true;
+			while (!triedLoggedIn) {}; 
+			return isLoggedIn;
 		}
 	}
 	
@@ -657,31 +719,41 @@ public class Bikerack implements EntryPoint {
 	/**
 	 * Only admins can do this
 	 */
-	private void testSetRacks() {
-		// TODO Add appropriate arguments for loadData to load data to clients, parsed with the given params
-		AdminServiceAsync adminService = GWT.create(AdminService.class);
-		testImportData(adminService);
+//	private void testSetRacks() {
+//		// TODO Add appropriate arguments for loadData to load data to clients, parsed with the given params
+//		testImportData(adminService);
 //		testGetTitleLine(adminService);
 //		testLoadData(adminService);
 //		testSetTableView(adminService);
-	}
+//	}
 
 
 	/**
 	 * @param adminService
 	 */
 	private void testImportData(final AdminServiceAsync adminService) {
+		if (!loginInfo.isAdmin()) return;
 		adminService.importData(new AsyncCallback<Boolean>() {
 					public void onFailure(Throwable error) {
+						setURLButton.setEnabled(true);
+						importButton.setEnabled(true);
 						handleError(error);
 					}
 
 					public void onSuccess(Boolean result) {
 						if (!result) {
-							//Window.alert("Import failed, try again");
+							setURLButton.setEnabled(true);
+							importButton.setEnabled(true);
+							Window.alert("Import failed, try again");
+						}						
+						else {
+							testGetTitleLine(adminService);
+							setURLButton.setEnabled(true);
+							importButton.setEnabled(true);
+							loadButton.setEnabled(true);
+							Window.alert("Import successful");
+							
 						}
-						testGetTitleLine(adminService);
-						//else Window.alert("Import successful, please proceed to parse");
 					}
 		});
 	}
@@ -698,9 +770,10 @@ public class Bikerack implements EntryPoint {
 
 			public void onSuccess(String[] result) {
 				if (result != null) {
-					testLoadData(adminService);
-					System.out.println(result[0] + " " + result[1] + " " + result[2] + " " 
-									+ result[3] + " " + result[4] + " " + result[5]);
+					//testLoadData(adminService);
+					titleLine = result;
+					titleLineLabel.setText(result[0] + " " + result[1] + " " + result[2] + " " 
+							+ result[3] + " " + result[4] + " " + result[5]);
 				}
 				//else Window.alert("Dataset format changed, cannot get new dataset");
 					
@@ -714,19 +787,104 @@ public class Bikerack implements EntryPoint {
 	private void testLoadData(final AdminServiceAsync adminService) {
 		adminService.loadData(null, new AsyncCallback<Boolean>() {
 				public void onFailure(Throwable error) {
+					setURLButton.setEnabled(true);
+					importButton.setEnabled(true);
+					loadButton.setEnabled(true);
 					handleError(error);
 				}
 
 				public void onSuccess(Boolean result) {
 					if (!result) {
-					//	Window.alert("Parse failed, try again");
+					Window.alert("Parse failed, try again");
 					}
-					testSetTableView(adminService);
-					//else Window.alert("Parse successful, new data loaded");
+					else {
+						//testSetTableView(adminService);
+						Window.alert("Parse successful, wait for geocoding");
+					}
+					geoCode = true;
+					testGetRacks();
+					setURLButton.setEnabled(true);
+					importButton.setEnabled(true);
+					loadButton.setEnabled(true);
 				}
 		});
 	}
 
+
+	protected void rebuildTableView() {
+		int row = 1;
+		for (Rack rack : racks) {
+			racksTable.setText(row, 0, Integer.toString(rack.getStreetNum()));
+			racksTable.setText(row, 1, rack.getStreetName());
+			racksTable.setText(row, 2, rack.getStreetSide());
+			racksTable.setText(row, 3, rack.getSkytrain());
+			racksTable.setText(row, 4, rack.getbIA());
+			racksTable.setText(row, 5, Integer.toString(rack.getNumRacks()));
+			racksTable.getRowFormatter().setStyleName(row, "tableContents");
+			row++;
+		}
+	}
+
+
+	protected void geocodeServerData() {
+		if (racks == null || racks.length <= 0) {
+			Window.alert("No data");
+			return;
+		}
+		
+		// Setup timer to refresh list automatically.
+		final Timer refreshTimer = new Timer() {
+			@Override
+			public void run() {
+				if (geocodeCount < racks.length)
+				geocodeNext();
+				else finishGeocoding(this);
+			}
+		};
+		refreshTimer.scheduleRepeating(500);
+	}
+
+
+	protected void finishGeocoding(Timer timer) {
+		timer.cancel();
+		Window.alert("Geocoding successful, sending data to server, wait for Markers to be drawn");
+		drawBikeracks();
+		if (!loginInfo.isAdmin()) return;
+		adminService.setRacks(racks,new AsyncCallback<Boolean>() {
+			public void onFailure(Throwable error) {
+				handleError(error);
+			}
+
+			public void onSuccess(Boolean result) {	
+				if (!result) {
+					Window.alert("Error sending geocodes to server");
+				}
+				//testGetRacks();
+				else Window.alert("Geocodes sent to server");
+			}
+		});
+	}
+
+	private void geocodeNext() {
+		//for (final Rack rack : racks) {
+		final int i = geocodeCount;
+		if (i >= racks.length) return;
+		GeocoderRequest request = GeocoderRequest.create();
+		String address = racks[i].getStreetNum() + "," + racks[i].getStreetName() + "," 
+						+ racks[i].getStreetSide() + "," + "vancouver" + "," +"canada";
+		request.setAddress(address);
+		geocoder.geocode(request, new Callback() {
+		      public void handle(JsArray<GeocoderResult> results, GeocoderStatus status) {
+		          if (status == GeocoderStatus.OK) {
+		        	  LatLng latlong = results.get(0).getGeometry().getLocation();
+		        	  racks[i].setLat(latlong.lat());
+		        	  racks[i].setLng(latlong.lng());
+		        	  //setRackMarker(rack, latlong);
+		          }
+		      }
+		});
+		geocodeCount++;
+	}
 
 	/**
 	 * @param adminService
@@ -757,28 +915,28 @@ public class Bikerack implements EntryPoint {
 			@Override
 			public void onFailure(Throwable caught) {
 				// TODO Auto-generated method stub
-				
+				triedGetRacks = true;
+				Window.alert("testGetRacks: failure connecting to server");
 			}
 
 			@Override
 			public void onSuccess(Rack[] result) {
+				triedGetRacks = true;
 				if (result == null) {
-					Window.alert("Error getting bike racks data from server");
+					Window.alert("No data found or error getting bike racks data from server");
 				}
 				else {
 					racks = result;
-					drawBikeracks();
-					int row = 1;
-					for (Rack rack : result) {
-						racksTable.setText(row, 0, Integer.toString(rack.getStreetNum()));
-						racksTable.setText(row, 1, rack.getStreetName());
-						racksTable.setText(row, 2, rack.getStreetSide());
-						racksTable.setText(row, 3, rack.getSkytrain());
-						racksTable.setText(row, 4, rack.getbIA());
-						racksTable.setText(row, 5, Integer.toString(rack.getNumRacks()));
-						racksTable.getRowFormatter().setStyleName(row, "tableContents");
-						row++;
+					if (loginInfo != null && loginInfo.isAdmin()) { 
+						Window.alert("Bike Racks retrieved");
+						if (geoCode) {
+							geocodeServerData();
+							Window.alert("Wait for geocoding");
+						}
 					}
+					rebuildTableView();
+					if (racks.length != 0 && racks[0].getLat() < 9999 && racks[0].getLng() < 9999) drawBikeracks();
+					//testDrawMarker();
 				}
 			}
 		});
@@ -787,19 +945,8 @@ public class Bikerack implements EntryPoint {
 	protected void drawBikeracks() {
 		// TODO Auto-generated method stub
 		if (racks == null) return;
-		Geocoder geocoder = Geocoder.create();
-		for (final Rack rack : racks) {
-			GeocoderRequest request = GeocoderRequest.create();
-			String address = rack.getStreetNum() + "," + rack.getStreetName() + "," + rack.getStreetSide() + "," + "vancouver" + "," +"canada";
-			request.setAddress(address);
-			geocoder.geocode(request, new Callback() {
-			      public void handle(JsArray<GeocoderResult> results, GeocoderStatus status) {
-			          if (status == GeocoderStatus.OK) {
-			        	  LatLng latlong = results.get(0).getGeometry().getLocation();
-			        	  setRackMarker(rack, latlong);
-			          }
-			      }
-			});
+		for (Rack rack : racks) {
+			setRackMarker(rack, LatLng.create(rack.getLat(), rack.getLng()));
 		}
 	}
 	
@@ -829,17 +976,60 @@ public class Bikerack implements EntryPoint {
 	    //tooltipOpt.setPixelOffset(Size.create(30, 20));
 	    String ttSkytrain = "";
 	    String ttBIA = "";
-	    if (rack.getSkytrain().length() != 0) ttSkytrain = "Near " + rack.getSkytrain() + " Skytrain station. ";
-	    if (rack.getbIA().length() != 0) ttBIA = "Business Improvement Associations Initials: " + rack.getbIA() + ". ";
-	    tooltipOpt.setContent("Address: " + rack.getStreetNum() + " " + rack.getStreetName() 
-	    					+ " " + rack.getStreetSide() + ", Vancouver, BC. " + ttSkytrain 
-	    					+ "No. of Racks: " + rack.getNumRacks() + ". "+ ttBIA);
+	    if (rack.getSkytrain().length() != 0) ttSkytrain = "At " + rack.getSkytrain() + " Skytrain station.";
+	    if (rack.getbIA().length() != 0) ttBIA = "<p>Business Improvement Associations (initials): " + rack.getbIA() + ".</p>";
+	    String address = "<p><b>Address:</b> " + rack.getStreetNum() + " " + rack.getStreetName() 
+	    					+ " " + rack.getStreetSide() + ttSkytrain + "</p>"; 
+	    String noRacks = "<p><b>Number of Racks:</b> " + rack.getNumRacks() + ".</p>";
+	    String allContents = "<div id=\"content\">"
+			      + "<div id=\"siteNotice\">"
+			      + "</div>"
+			      //+ "<h1 id=\"firstHeading\" class=\"firstHeading\">Uluru</h1>"
+			      + "<div id=\"bodyContent\">"
+			      + address
+			      + ttBIA
+			      + noRacks
+			      + "</div>"
+			      + "</div>";
+	    tooltipOpt.setContent(allContents);
 	    InfoWindow tooltip = InfoWindow.create();
 	    tooltip.setOptions(tooltipOpt);
 	    return tooltip;
 	}
-
-
+	
+	private void getDataURL() {
+		// TODO Auto-generated method stub
+		AdminServiceAsync adminService = GWT.create(AdminService.class);
+		adminService.getDataURL(new AsyncCallback<String>() {
+			public void onFailure(Throwable error) {
+				handleError(error);
+			}
+			public void onSuccess(String result) {
+				URLTextBox.setText(result);;
+			}
+		});
+	}
+	
+	private void setDataURL(String URL) {
+		// TODO Auto-generated method stub
+		AdminServiceAsync adminService = GWT.create(AdminService.class);
+		adminService.setDataURL(URL, new AsyncCallback<Boolean>() {
+			public void onFailure(Throwable error) {
+				setURLButton.setEnabled(true);
+				importButton.setEnabled(true);
+				handleError(error);
+			}
+			public void onSuccess(Boolean result) {
+				if (!result) Window.alert("URL setting failed, try again");
+				else {
+					Window.alert("New data URL set");
+				}
+				setURLButton.setEnabled(true);
+				importButton.setEnabled(true);
+			}
+		});
+	}
+	
 	private void handleError(Throwable error) {
 		Window.alert(error.getMessage());
 	}

@@ -9,7 +9,25 @@ public class Rack implements Serializable {
 	private String bIA;
 	private String skytrain;
 	private int numRacks;
+	private double lat;
+	private double lng;
 	
+	public double getLat() {
+		return lat;
+	}
+
+	public void setLat(double lat) {
+		this.lat = lat;
+	}
+
+	public double getLng() {
+		return lng;
+	}
+
+	public void setLng(double lng) {
+		this.lng = lng;
+	}
+
 	public Rack() {
 	}
 	
@@ -21,6 +39,8 @@ public class Rack implements Serializable {
 		this.bIA = bIA;
 		this.skytrain = skytrain;
 		this.numRacks = numRacks;
+		this.lat = 9999;;
+		this.lng = 9999;
 	}
 
 	public String getbIA() {

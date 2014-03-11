@@ -34,7 +34,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	private String delimiter = ",";
 	private int titleLineNum = 3;
 	private static final PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
-	private URL url;
+	private static URL url;
 	private HttpURLConnection connection;
 	private File file;
 	private FileReader fis;
@@ -77,6 +77,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 			if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
 				System.out.println("HTTP connection error");
 			}
+			if (br != null) br.close();
 			br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			// initialize col and row number
 			int rowCount = 0;
@@ -139,33 +140,21 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 					System.out.println("Parsing failed at this line.");
 				}
 				// TODO: delete this line after done, just for testing
-				// if (rowCount > 5) break;
+				 if (rowCount > 15) break;
 			}
 			br.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return new Boolean(false);
 		}
-		setRacks();
-		return new Boolean(true);
+		return setRacks();
 	}
 
 	private void createRack(final String[] rack) {
-		// TODO Auto-generated method stub
-//		GeocoderRequest request = GeocoderRequest.create();
-//		String address = rack[1] + "," + rack[2] + "," + rack[3] + "," + "vancouver" + "," +"canada";
-//		request.setAddress(address);
-//		geocoder.geocode(request, new Callback() {
-//			@Override
-//		      public void handle(JsArray<GeocoderResult> results, GeocoderStatus status) {
-//		          if (status == GeocoderStatus.OK) {
-//		        	  LatLng latlong = results.get(0).getGeometry().getLocation();
-		        	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
-		        			  				rack[5], Integer.parseInt(rack[6]));
-		        	  racks.add(clientRack);
-//		          }
-//		      }
-//		});
+	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
+			  				rack[5], Integer.parseInt(rack[6]));
+	  racks.add(clientRack);
+
 	}
 
 	public Boolean setTableView(String[] params) {
@@ -176,7 +165,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 		return titleLine;
 	}
 	
-	private void setRacks() {
+	private Boolean setRacks() {
 		RackServiceImpl rsi = new RackServiceImpl();
 		Rack[] clientRacks = new Rack[racks.size()];
 		int i = 0;
@@ -184,6 +173,17 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 			clientRacks[i] = rack;
 			i++;
 		}
-		rsi.setRacks(clientRacks);
+		return new Boolean(rsi.setRacks(clientRacks));
+	}
+
+	@Override
+	public String getDataURL() {
+		return host + year + name;
+	}
+
+	@Override
+	public Boolean setRacks(Rack[] racks) {
+		RackServiceImpl rsi = new RackServiceImpl();
+		return rsi.setRacks(racks);
 	}
 }

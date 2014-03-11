@@ -12,8 +12,10 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 @RemoteServiceRelativePath("admin")
 public interface AdminService extends RemoteService {
 	Boolean setDataURL(String uri);
+	String getDataURL();
 	Boolean importData();
 	String[] getTitleLine();
 	Boolean loadData(String[] params);
 	Boolean setTableView(String[] params);
+	Boolean setRacks(Rack[] racks);
 }
