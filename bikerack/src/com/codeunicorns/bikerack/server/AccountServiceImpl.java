@@ -25,7 +25,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	 */
 	public LoginInfo login(String[] request) {
 		// Enable this to wipe database for testing purpose
-		//deletePersistentAll();
+		//deleteAllUsers();
 		LoginInfo loginInfo = null;
 		List<User> users = retrieveAllUsers();
 		for (int i = 0; i < users.size(); i++) {
@@ -47,7 +47,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		users = (List<User>) q.execute();
 		for (int i = 0; i < users.size(); i++) {
 			User user = users.get(i);
-			System.out.println("Database:" + i + ". " + user.getUsername() + " " + user.getPassword() + user.getId());
+			//System.out.println("Database:" + i + ". " + user.getUsername() + " " + user.getPassword() + user.getId());
 		}
 		}finally {
 			pm.close();
@@ -73,7 +73,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		return isDuplicate;
 	}
 
-	private void deletePersistentAll() {
+	private void deleteAllUsers() {
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
 			Query q = pm.newQuery(User.class);;

@@ -47,10 +47,6 @@ public class User {
 		return id;
 	}
 
-	public Date getCreateDate() {
-		return createDate;
-	}
-
 	public String getEmailAddress() {
 		return emailAddress;
 	}

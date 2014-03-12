@@ -1,16 +1,57 @@
 package com.codeunicorns.bikerack.client;
 
 import java.io.Serializable;
+import java.util.Date;
 
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+
+@PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Rack implements Serializable {
+	@PrimaryKey
+	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
+	private Long id;
+	@Persistent
 	private int streetNum;
+	@Persistent
 	private String streetName;
+	@Persistent
 	private String streetSide;
+	@Persistent
 	private String bIA;
+	@Persistent
 	private String skytrain;
+	@Persistent
 	private int numRacks;
+	@Persistent
 	private double lat;
+	@Persistent
 	private double lng;
+	@Persistent
+	private Date createDate; 
+
+	public Rack() {
+		this.createDate = new Date();
+	}
+	
+	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
+			String bIA, int numRacks, double lat, double lng) {
+		this.streetNum = streetNum;
+		this.streetName = streetName;
+		this.streetSide = streetSide;
+		this.bIA = bIA;
+		this.skytrain = skytrain;
+		this.numRacks = numRacks;
+		this.lat = lat;
+		this.lng = lng;
+	}
+
+	public Long getId() {
+		return this.id;
+	}
 	
 	public double getLat() {
 		return lat;
@@ -27,22 +68,7 @@ public class Rack implements Serializable {
 	public void setLng(double lng) {
 		this.lng = lng;
 	}
-
-	public Rack() {
-	}
 	
-	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
-			String bIA, int numRacks) {
-		this.streetNum = streetNum;
-		this.streetName = streetName;
-		this.streetSide = streetSide;
-		this.bIA = bIA;
-		this.skytrain = skytrain;
-		this.numRacks = numRacks;
-		this.lat = 9999;;
-		this.lng = 9999;
-	}
-
 	public String getbIA() {
 		return bIA;
 	}

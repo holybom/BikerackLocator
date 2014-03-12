@@ -116,7 +116,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	private boolean emptyLine(String line) {
 		String[] splitLine = line.split(delimiter);
 		for (String str : splitLine) {
-			if (str != "") return false;
+			if (str.compareTo("") != 0) return false;
 		}
 		return true;
 	}
@@ -140,8 +140,9 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 					System.out.println("Parsing failed at this line.");
 				}
 				// TODO: delete this line after done, just for testing
-				 if (rowCount > 15) break;
+				// if (rowCount > 15) break;
 			}
+			System.out.println("Parse: Number of Racks: " + Integer.toString(rowCount - 1));
 			br.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -152,7 +153,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 
 	private void createRack(final String[] rack) {
 	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
-			  				rack[5], Integer.parseInt(rack[6]));
+			  				rack[5], Integer.parseInt(rack[6]), 9999, 9999);
 	  racks.add(clientRack);
 
 	}

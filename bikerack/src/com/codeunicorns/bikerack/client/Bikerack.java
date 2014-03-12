@@ -31,6 +31,7 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.UIObject;
@@ -74,7 +75,7 @@ public class Bikerack implements EntryPoint {
 	private TabLayoutPanel centralPanel = new TabLayoutPanel(20, Unit.PX);
 	private LayoutPanel userPanel = new LayoutPanel();
 	private LayoutPanel mapPanel = new LayoutPanel();
-	private LayoutPanel tableViewPanel = new LayoutPanel();
+	private ScrollPanel tableViewPanel = new ScrollPanel();
 	private VerticalPanel logInStatusPanel = new VerticalPanel();
 	private VerticalPanel profilePanel = new VerticalPanel();
 	private VerticalPanel favoritePanel = new VerticalPanel();
@@ -89,6 +90,7 @@ public class Bikerack implements EntryPoint {
 	private HorizontalPanel passwordPanel = new HorizontalPanel();
 	private HorizontalPanel userNamePanel2 = new HorizontalPanel();
 	private HorizontalPanel passwordPanel2 = new HorizontalPanel();
+	private HorizontalPanel confirmPasswordPanel = new HorizontalPanel();
 	private HorizontalPanel emailPanel = new HorizontalPanel();
 	private HorizontalPanel nickNamePanel = new HorizontalPanel();
 	private HorizontalPanel adminCodePanel = new HorizontalPanel();
@@ -115,6 +117,7 @@ public class Bikerack implements EntryPoint {
 	private Label passwordLabel = new Label("Password");
 	private Label userNameLabel2 = new Label("Username");
 	private Label passwordLabel2 = new Label("Password");
+	private Label confirmPasswordLabel = new Label("Retype password");
 	private Label nickNameLabel = new Label("Display name");
 	private Label emailLabel = new Label("Email");
 	private Label adminCodeLabel = new Label("Auth code");
@@ -128,6 +131,7 @@ public class Bikerack implements EntryPoint {
 	private TextBox URLTextBox = new TextBox();
 	private PasswordTextBox passwordTextbox = new PasswordTextBox();
 	private PasswordTextBox passwordTextbox2 = new PasswordTextBox();
+	private PasswordTextBox confirmPasswordTextbox = new PasswordTextBox();
 	private LoginInfo loginInfo = null;
 	private boolean isLoggedIn = false;
 	private GoogleMap map;
@@ -560,6 +564,8 @@ public class Bikerack implements EntryPoint {
 		userNamePanel2.add(userNameTextbox2);
 		passwordPanel2.add(passwordLabel2);
 		passwordPanel2.add(passwordTextbox2);
+		confirmPasswordPanel.add(confirmPasswordLabel);
+		confirmPasswordPanel.add(confirmPasswordTextbox);
 		emailPanel.add(emailLabel);
 		emailPanel.add(emailTextbox);
 		nickNamePanel.add(nickNameLabel);
@@ -572,6 +578,7 @@ public class Bikerack implements EntryPoint {
 		registerPanel.add(registerTitleLabel);
 		registerPanel.add(userNamePanel2);
 		registerPanel.add(passwordPanel2);
+		registerPanel.add(confirmPasswordPanel);
 		registerPanel.add(emailPanel);
 		registerPanel.add(nickNamePanel);
 		registerPanel.add(adminCodePanel);
@@ -684,11 +691,13 @@ public class Bikerack implements EntryPoint {
 				// Retrieve info from register form and call register on server
 				String username = userNameTextbox2.getValue();
 				String password = passwordTextbox2.getValue();
+				String confirmPassword = confirmPasswordTextbox.getValue();
 				String email = emailTextbox.getValue();
 				String nickName = nickNameTextbox.getValue();
 				String adminCode = adminCodeTextbox.getValue();
 				String[] request = {email, nickName, username, password, adminCode};
-				register(request);
+				if (confirmPassword.compareTo(password) != 0) Window.alert("Retype Password must match Password");
+				else register(request);
 			}
 		});
 		clearButton.addClickHandler(new ClickHandler() {
@@ -772,7 +781,7 @@ public class Bikerack implements EntryPoint {
 				if (result != null) {
 					//testLoadData(adminService);
 					titleLine = result;
-					titleLineLabel.setText(result[0] + " " + result[1] + " " + result[2] + " " 
+					titleLineLabel = new Label(result[0] + " " + result[1] + " " + result[2] + " " 
 							+ result[3] + " " + result[4] + " " + result[5]);
 				}
 				//else Window.alert("Dataset format changed, cannot get new dataset");
@@ -823,6 +832,9 @@ public class Bikerack implements EntryPoint {
 			racksTable.getRowFormatter().setStyleName(row, "tableContents");
 			row++;
 		}
+		racksTable.setText(row,0, "Total");
+		racksTable.setText(row,1, Integer.toString(racks.length));
+		racksTable.getRowFormatter().setStyleName(row, "tableContents");
 	}
 
 
