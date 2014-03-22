@@ -30,12 +30,8 @@ public class Rack implements Serializable {
 	private double lat;
 	@Persistent
 	private double lng;
-	@Persistent
-	private Date createDate; 
-
-	public Rack() {
-		this.createDate = new Date();
-	}
+	
+	public Rack() {};
 	
 	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
 			String bIA, int numRacks, double lat, double lng) {
@@ -52,7 +48,7 @@ public class Rack implements Serializable {
 	public Long getId() {
 		return this.id;
 	}
-	
+
 	public double getLat() {
 		return lat;
 	}

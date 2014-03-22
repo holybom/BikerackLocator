@@ -26,7 +26,9 @@ public class User {
 	@Persistent
 	private boolean isAdmin;
 	@Persistent
-	private Date createDate;   
+	private Date createDate;
+	@Persistent
+	private String facebookId;
 	
 	
 	public User() {

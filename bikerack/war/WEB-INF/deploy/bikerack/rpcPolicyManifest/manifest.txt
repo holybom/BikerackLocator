@@ -1,2 +1,5 @@
 # Module bikerack
 # RPC service class, partial path of RPC policy file
+com.codeunicorns.bikerack.client.AccountService, D38CE7F324FF6829A6A639DAA40A05AD.gwt.rpc
+com.codeunicorns.bikerack.client.AdminService, 48EC3CD140F719CC6F92DA5EE7C5B143.gwt.rpc
+com.codeunicorns.bikerack.client.RackService, 6334D3EDB7955CAB93C4007A3D140BE4.gwt.rpc

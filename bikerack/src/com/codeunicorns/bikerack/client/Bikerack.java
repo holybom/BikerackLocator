@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.codeunicorns.bikerack.shared.FieldVerifier;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -25,6 +26,7 @@ import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LayoutPanel;
 import com.google.gwt.user.client.ui.Panel;
@@ -36,6 +38,7 @@ import com.google.gwt.user.client.ui.TabLayoutPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.maps.gwt.client.Geocoder;
 import com.google.maps.gwt.client.Geocoder.Callback;
@@ -55,6 +58,11 @@ import com.google.maps.gwt.client.Size;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.Cookies;
+import com.gwtfb.sdk.JSOModel;
+import com.gwtfb.sdk.FBCore;
+import com.gwtfb.sdk.FBEvent;
+import com.gwtfb.sdk.FBXfbml;
+
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -150,13 +158,23 @@ public class Bikerack implements EntryPoint {
 	private boolean triedGetRacks = false;
 	private Geocoder geocoder = Geocoder.create();
 	private int geocodeCount = 0;
+	private FBCore fbCore;
+	private FBEvent fbEvent;
+	private boolean isFacebook = false;
+	//private boolean status = true;
+	//private boolean xfbml = true;
+	//private boolean cookie = true;
+	Widget fbLoginButton = new HTML(
+			"<div class='fb-login-button' data-max-rows='1'" 
+			+ "data-size='medium' data-show-faces='false'" 
+			+ "data-auto-logout-link='false'></div>");
 	
 	/**
 	 * Define our own ClickEvent class for UI Widgets, because for some reason GWT doesn't allow
 	 * us to create a new instance of the default ClickEvent class.
 	 */
 	class MyClickEvent extends ClickEvent {};
-	
+
 	/**
 	 * This is the entry point method. Where everything starts.
 	 * Main Panel is implemented as a Dock Panel, in which 5 widgets will be added North, South, East, West
@@ -170,10 +188,7 @@ public class Bikerack implements EntryPoint {
 	 * 			    Welcome Label/Signout Button (S)	
 	 */
 	public void onModuleLoad() {
-		//testSetRacks();
-		accountService = GWT.create(AccountService.class);
-		rackService = GWT.create(RackService.class);
-		adminService = null;
+		initServices();
 		testGetRacks();
 		// load app title on top
 		loadAppTitle();
@@ -185,13 +200,15 @@ public class Bikerack implements EntryPoint {
 		loadUserPanel();
 		// Lastly, load the google map at the center of the screen
 		loadMapView();
+		// Initialize facebook api
+		//facebook.setOAuthAppId("1483880728501371", "1746bcb3a3153ff0be20a189bf0c25b0");
+		//facebook.setOAuthPermissions("basic_info");
 		// set login status of the web app to set visibility of the panels accordingly
 		setLoginStatus(getLoginInfo());
 		// Last step is add the entire thing to HTML host page
 		RootLayoutPanel.get().add(mainPanel);
 	}
 
-	
 	/**
 	 * This loads the objects regarding App title on top, for cosmetics purpose
 	 * Can add a picture, etc. later
@@ -217,27 +234,7 @@ public class Bikerack implements EntryPoint {
 		// Put everything together
 		logInStatusPanel.add(loggedInLabelPanel);
 		logInStatusPanel.add(notLoggedInLabelPanel);
-		// TODO: remove this
-		//logInStatusPanel.add(hideRegisterButton);
-		//logInStatusPanel.add(showRegisterButton);
-//		showRegisterButton.addClickHandler(new ClickHandler() {
-//
-//			@Override
-//			public void onClick(ClickEvent event) {
-//				// TODO Auto-generated method stub
-//				accountAccessPanel.add(registerPanel);
-//			}
-//			
-//		});
-//		hideRegisterButton.addClickHandler(new ClickHandler() {
-//
-//			@Override
-//			public void onClick(ClickEvent event) {
-//				// TODO Auto-generated method stub
-//				accountAccessPanel.remove(registerPanel);
-//			}
-//		});
-		//
+
 		mainPanel.addSouth(logInStatusPanel, 100);
 	}
 
@@ -526,11 +523,11 @@ public class Bikerack implements EntryPoint {
 	 * Retrieve login info from browser on first run by mean of cookie
 	 * @return true if already logged in, else false
 	 */
-	private boolean getLoginInfo() {
+	private boolean getLoginInfo() {		
 		String cookieVal = Cookies.getCookie("bikeracklocator");
 		if (cookieVal == null) {
 		loginInfo = null;
-		return false;
+		isLoggedIn = false;
 		}
 		else {
 			login(cookieVal.split(" "));
@@ -540,14 +537,19 @@ public class Bikerack implements EntryPoint {
 			//setLoginStatus(isLoggedIn);
 			//welcomeLabel.setText("Welcome back " + loginInfo.getNickname() + "!");
 			while (!triedLoggedIn) {}; 
-			return isLoggedIn;
 		}
+		// Get facebook Info
+		fbCore.getLoginStatus(new LoginStatusCallback ());
+		return isLoggedIn;
 	}
 	
 	/**
 	 * Creating user access panel, including a login form and a register form
 	 */
 	private void loadUserAccessPanel() {
+
+		Widget fbLoginButton2 = new HTML(fbLoginButton.getElement().getInnerHTML());
+		
 		// Creating login UI
 		userNamePanel.add(userNameLabel);
 		userNamePanel.add(userNameTextbox);
@@ -558,6 +560,7 @@ public class Bikerack implements EntryPoint {
 		loginPanel.add(userNamePanel);
 		loginPanel.add(passwordPanel);
 		loginPanel.add(loginButton);
+		loginPanel.add(fbLoginButton);
 		
 		// Creating register UI
 		userNamePanel2.add(userNameLabel2);
@@ -584,6 +587,7 @@ public class Bikerack implements EntryPoint {
 		registerPanel.add(adminCodePanel);
 		registerPanel.add(adminCodeLabel2);
 		registerPanel.add(registerFormButtonsPanel);
+		registerPanel.add(fbLoginButton2);
 		
 		// Put everything together
 		accountAccessPanel.add(loginPanel);
@@ -670,7 +674,7 @@ public class Bikerack implements EntryPoint {
 		nickNameTextbox.addKeyDownHandler(signupButtonClick);
 		adminCodeTextbox.addKeyDownHandler(signupButtonClick);
 		
-		// Implementing 3/ Listen for mouse events on the Login, Logout and Signup and Clear buttons.
+		// Implementing 3/ Listen for mouse events on the Login, Logout and Signup and Clear buttons.		
 		loginButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
 			// Retrieve info from the login form and call login on server
@@ -710,7 +714,7 @@ public class Bikerack implements EntryPoint {
 			}
 		});
 	}
-	
+
 	/**
 	 * Load the User Info Panel with two tabs, favorite tab and profile tab
 	 */
@@ -724,18 +728,6 @@ public class Bikerack implements EntryPoint {
 		accountInfoPanel.add(favoritePanel);
 		accountInfoPanel.add(profilePanel);
 	}
-		
-	/**
-	 * Only admins can do this
-	 */
-//	private void testSetRacks() {
-//		// TODO Add appropriate arguments for loadData to load data to clients, parsed with the given params
-//		testImportData(adminService);
-//		testGetTitleLine(adminService);
-//		testLoadData(adminService);
-//		testSetTableView(adminService);
-//	}
-
 
 	/**
 	 * @param adminService
@@ -921,12 +913,10 @@ public class Bikerack implements EntryPoint {
 	 * For testing getting rack information
 	 */
 	private void testGetRacks() {
-		// TODO Auto-generated method stub
 		RackServiceAsync rackService = GWT.create(RackService.class);
 		rackService.getRacks(new AsyncCallback<Rack[]>() {
 			@Override
 			public void onFailure(Throwable caught) {
-				// TODO Auto-generated method stub
 				triedGetRacks = true;
 				Window.alert("testGetRacks: failure connecting to server");
 			}
@@ -955,7 +945,6 @@ public class Bikerack implements EntryPoint {
 	}
 	
 	protected void drawBikeracks() {
-		// TODO Auto-generated method stub
 		if (racks == null) return;
 		for (Rack rack : racks) {
 			setRackMarker(rack, LatLng.create(rack.getLat(), rack.getLng()));
@@ -1010,7 +999,6 @@ public class Bikerack implements EntryPoint {
 	}
 	
 	private void getDataURL() {
-		// TODO Auto-generated method stub
 		AdminServiceAsync adminService = GWT.create(AdminService.class);
 		adminService.getDataURL(new AsyncCallback<String>() {
 			public void onFailure(Throwable error) {
@@ -1023,7 +1011,6 @@ public class Bikerack implements EntryPoint {
 	}
 	
 	private void setDataURL(String URL) {
-		// TODO Auto-generated method stub
 		AdminServiceAsync adminService = GWT.create(AdminService.class);
 		adminService.setDataURL(URL, new AsyncCallback<Boolean>() {
 			public void onFailure(Throwable error) {
@@ -1042,6 +1029,58 @@ public class Bikerack implements EntryPoint {
 		});
 	}
 	
+	//
+	// Callback used when session status is changed
+	//
+	class SessionChangeCallback extends FacebookCallback<JavaScriptObject> {
+		public void onSuccess ( JavaScriptObject response ) {
+		    // Make sure cookie is set so we can use the non async method
+		    //renderHomeView ();
+			Window.alert("Session changed");
+		}
+	}
+	
+	//
+	// Callback used to retrieve user info when logged in
+	//
+	class UserCallback extends FacebookCallback<JavaScriptObject> {
+		public void onSuccess ( JavaScriptObject response ) {
+			JSOModel jso = response.cast();
+			loginInfo = new LoginInfo("Email Not Supported",jso.get("name"),false);
+		}
+	}
+	
+	// Callback used when checking login status
+	class LoginStatusCallback extends FacebookCallback<JavaScriptObject> {
+		public void onSuccess ( JavaScriptObject response ) {
+			//renderApp( Window.Location.getHash() );
+			Window.alert("Login Status Retrieved");
+			if (fbCore.getAuthResponse() != null) {
+				isLoggedIn = true;
+				fbCore.api ( "/me" , new UserCallback());
+			}
+			else isLoggedIn = false;
+			setLoginStatus(isLoggedIn);
+			FBXfbml.parse();
+		}
+	}
+	
+	private void initServices() {
+		// TODO Auto-generated method stub
+		String APPID = "1483880728501371";
+		fbCore.init(APPID, true, true, true);
+		fbCore = GWT.create(FBCore.class);
+		fbEvent = GWT.create(FBEvent.class);
+		// Get notified when user session is changed
+		//
+		SessionChangeCallback sessionChangeCallback = new SessionChangeCallback ();
+		fbEvent.subscribe("auth.sessionChange",sessionChangeCallback);
+		
+		accountService = GWT.create(AccountService.class);
+		rackService = GWT.create(RackService.class);
+		adminService = null;
+	}
+
 	private void handleError(Throwable error) {
 		Window.alert(error.getMessage());
 	}
