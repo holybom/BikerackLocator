@@ -72,7 +72,7 @@ public class UserPanel extends LayoutPanel {
 	Widget fbLoginButton = new HTML(
 			"<div class='fb-login-button' data-max-rows='1'" 
 			+ "data-size='medium' data-show-faces='false'" 
-			+ "data-auto-logout-link='false'></div>");
+			+ "data-auto-logout-link='true'></div>");
 	private UIController uiController;
 	
 	public static UserPanel getInstance(UIController uiController) {
@@ -266,8 +266,10 @@ public class UserPanel extends LayoutPanel {
 				// Set textbox values to an empty string
 				userNameTextbox2.setValue("");
 				passwordTextbox2.setValue("");
+				confirmPasswordTextbox.setValue("");
 				emailTextbox.setValue("");
 				nickNameTextbox.setValue("");
+				adminCodeTextbox.setValue("");
 			}
 		});
 	}

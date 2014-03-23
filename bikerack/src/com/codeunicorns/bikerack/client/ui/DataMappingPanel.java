@@ -185,7 +185,7 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 	    if (rack.getSkytrain().length() != 0) ttSkytrain = "At " + rack.getSkytrain() + " Skytrain station.";
 	    if (rack.getbIA().length() != 0) ttBIA = "<p>Business Improvement Associations (initials): " + rack.getbIA() + ".</p>";
 	    String address = "<p><b>Address:</b> " + rack.getStreetNum() + " " + rack.getStreetName() 
-	    					+ " " + rack.getStreetSide() + ttSkytrain + "</p>"; 
+	    					+ " " + ttSkytrain + "</p>"; 
 	    String noRacks = "<p><b>Number of Racks:</b> " + rack.getNumRacks() + ".</p>";
 	    String allContents = "<div id=\"content\">"
 			      + "<div id=\"siteNotice\">"
@@ -217,6 +217,7 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 
 	void rebuildTableView(Rack[] racks) {
 		int row = 1;
+		if (racks == null || racks.length == 0 || racks[0] == null) return;
 		this.racks = racks;
 		for (Rack rack : racks) {
 			racksTable.setText(row, 0, Integer.toString(rack.getStreetNum()));
@@ -227,6 +228,9 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 			racksTable.setText(row, 5, Integer.toString(rack.getNumRacks()));
 			racksTable.getRowFormatter().setStyleName(row, "tableContents");
 			row++;
+		}
+		for (int i = racksTable.getRowCount()-1; i >= row; i--) {
+			racksTable.removeRow(i);
 		}
 		racksTable.setText(row,0, "Total");
 		racksTable.setText(row,1, Integer.toString(racks.length));

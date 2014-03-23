@@ -98,18 +98,30 @@ public class Bikerack implements EntryPoint {
 	private LoginInfo loginInfo = null;
 	private boolean isLoggedIn = false;
 	private Label titleLineLabel = new Label("");
+	private boolean status = true;
+	private boolean cookie = true;
+	private boolean xfbml = true;	
 	
 	/**
 	 * This is the entry point method. Where everything starts.
 
 	 */
 	public void onModuleLoad() {
+		// initialize server and facebook services
 		initServices();
-		getServerRacks();
 		// build UI
 		uiController = UIController.getInstance(this);
 		// set login status of the web app to set visibility of the panels accordingly
 		uiController.setLoginStatus(getLoginInfo(), loginInfo);
+		// Get bike rack data from server
+		Timer refreshRacks = new Timer() {
+			@Override
+			public void run() {
+				getServerRacks();
+			}
+		};
+		refreshRacks.scheduleRepeating(60000);
+		refreshRacks.run();
 	}
 	
 	/**
@@ -256,19 +268,13 @@ public class Bikerack implements EntryPoint {
 	 */
 	private boolean getLoginInfo() {		
 		String cookieVal = Cookies.getCookie("bikeracklocator");
-		if (cookieVal == null) {
-		loginInfo = null;
-		isLoggedIn = false;
-		}
-		else {
+		if (cookieVal != null) {
+		//loginInfo = null;
+		//isLoggedIn = false;
+		//}
+		//else {
 			login(cookieVal.split(" "));
-			//loginInfo.setNickname(cookieVal);
-			//this.loginInfo = loginInfo;
-			//isLoggedIn = true;
-			//setLoginStatus(isLoggedIn);
-			//welcomeLabel.setText("Welcome back " + loginInfo.getNickname() + "!");
-			int i = 99999;
-			while (!triedLoggedIn && i>0) {i--;}; 
+			//Timer lock = new Timer();
 		}
 		// Get facebook Info
 		fbCore.getLoginStatus(new LoginStatusCallback ());
@@ -295,7 +301,7 @@ public class Bikerack implements EntryPoint {
 						else {
 							getTitleLine();
 							uiController.importSuccessful(true);
-							Window.alert("Import successful");
+							//Window.alert("Import successful");
 							
 						}
 					}
@@ -340,7 +346,7 @@ public class Bikerack implements EntryPoint {
 					}
 					else {
 						//testSetTableView(adminService);
-						Window.alert("Parse successful, wait for geocoding");
+						//Window.alert("Parse successful, wait for geocoding");
 					}
 					geoCode = true;
 					getServerRacks();
@@ -349,7 +355,7 @@ public class Bikerack implements EntryPoint {
 		});
 	}
 
-	private void geocodeServerData() {
+	private void geocodeServerData(final Rack[] racks) {
 		if (racks == null || racks.length <= 0) {
 			Window.alert("No data");
 			return;
@@ -360,17 +366,19 @@ public class Bikerack implements EntryPoint {
 			@Override
 			public void run() {
 				if (geocodeCount < racks.length)
-				geocodeNext();
-				else finishGeocoding(this);
+				geocodeNext(racks);
+				else finishGeocoding(this, racks);
 			}
 		};
 		refreshTimer.scheduleRepeating(500);
 	}
 
 
-	private void finishGeocoding(Timer timer) {
+	private void finishGeocoding(Timer timer, Rack[] racks) {
 		timer.cancel();
-		Window.alert("Geocoding successful, sending data to server, wait for Markers to be drawn");
+		geoCode = false;
+		this.racks = racks;
+		//Window.alert("Geocoding successful, sending data to server, wait for Markers to be drawn");
 		uiController.drawBikeracks(racks);
 		if (!loginInfo.isAdmin()) return;
 		adminService.setRacks(racks,new AsyncCallback<Boolean>() {
@@ -383,15 +391,19 @@ public class Bikerack implements EntryPoint {
 					Window.alert("Error sending geocodes to server");
 				}
 				//testGetRacks();
-				else Window.alert("Geocodes sent to server");
+				//else Window.alert("Geocodes sent to server");
 			}
 		});
 	}
 
-	private void geocodeNext() {
+	private void geocodeNext(final Rack[] racks) {
 		//for (final Rack rack : racks) {
 		final int i = geocodeCount;
 		if (i >= racks.length) return;
+		if (racks[i].getLat() < 9999 && racks[i].getLng() < 9999) {
+			geocodeCount++;
+			return;
+		}
 		GeocoderRequest request = GeocoderRequest.create();
 		String address = racks[i].getStreetNum() + "," + racks[i].getStreetName() + "," 
 						+ racks[i].getStreetSide() + "," + "vancouver" + "," +"canada";
@@ -445,20 +457,20 @@ public class Bikerack implements EntryPoint {
 			@Override
 			public void onSuccess(Rack[] result) {
 				triedGetRacks = true;
-				if (result == null) {
-					Window.alert("No data found or error getting bike racks data from server");
+				if (result == null || result.length == 0) {
+					//Window.alert("No data found or error getting bike racks data from server");
 				}
 				else {
+					if (racks != null && racks.length >= result.length) return;
 					racks = result;
-					if (loginInfo != null && loginInfo.isAdmin()) { 
-						Window.alert("Bike Racks retrieved");
-						if (geoCode) {
-							geocodeServerData();
-							Window.alert("Wait for geocoding");
-						}
-					}
-					uiController.rebuildTableView(racks);
+					uiController.rebuildTableView(racks);	
 					if (racks.length != 0 && racks[0].getLat() < 9999 && racks[0].getLng() < 9999) uiController.drawBikeracks(racks);
+					if (loginInfo != null && loginInfo.isAdmin() && geoCode == true) { 
+						//Window.alert("Bike Racks retrieved");
+							racks = new Rack[racks.length];
+							geocodeServerData(result);
+							//Window.alert("Wait for geocoding");
+					}
 					//testDrawMarker();
 				}
 			}
@@ -536,7 +548,7 @@ public class Bikerack implements EntryPoint {
 		String APPID = "1483880728501371";
 		fbCore = GWT.create(FBCore.class);
 		fbEvent = GWT.create(FBEvent.class);
-		fbCore.init(APPID, true, true, true);
+		fbCore.init(APPID, status, cookie, xfbml);
 		// Get notified when user session is changed
 		//
 		SessionChangeCallback sessionChangeCallback = new SessionChangeCallback ();

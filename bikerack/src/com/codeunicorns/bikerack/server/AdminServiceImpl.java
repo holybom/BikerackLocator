@@ -123,6 +123,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 
 	public Boolean loadData(String[] params) {
 		// parse data
+		racks = new LinkedList<Rack>();
 		if (br == null) {
 			System.out.println("Error reading from source");
 			return new Boolean(false);
@@ -140,7 +141,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 					System.out.println("Parsing failed at this line.");
 				}
 				// TODO: delete this line after done, just for testing
-				//if (rowCount > 15) break;
+				//if (rowCount > 20) break;
 			}
 			System.out.println("Parse: Number of Racks: " + Integer.toString(rowCount - 1));
 			br.close();
@@ -174,6 +175,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 			clientRacks[i] = rack;
 			i++;
 		}
+		rsi.setBypassPersistence(true);
 		return new Boolean(rsi.setRacks(clientRacks));
 	}
 
