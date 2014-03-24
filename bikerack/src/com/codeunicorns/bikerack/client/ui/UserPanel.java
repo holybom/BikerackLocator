@@ -73,6 +73,7 @@ public class UserPanel extends LayoutPanel {
 			"<div class='fb-login-button' data-max-rows='1'" 
 			+ "data-size='medium' data-show-faces='false'" 
 			+ "data-auto-logout-link='true'></div>");
+	Widget fbLoginButton2;
 	private UIController uiController;
 	
 	public static UserPanel getInstance(UIController uiController) {
@@ -98,7 +99,7 @@ public class UserPanel extends LayoutPanel {
 	 */
 	private void loadUserAccessPanel() {
 
-		Widget fbLoginButton = new HTML(this.fbLoginButton.getElement().getInnerHTML());
+		//Widget fbLoginButton = new HTML(this.fbLoginButton.getElement().getInnerHTML());
 		
 		// Creating login UI
 		userNamePanel.add(userNameLabel);
@@ -137,7 +138,7 @@ public class UserPanel extends LayoutPanel {
 		registerPanel.add(adminCodePanel);
 		registerPanel.add(adminCodeLabel2);
 		registerPanel.add(registerFormButtonsPanel);
-		registerPanel.add(fbLoginButton);
+		//registerPanel.add(fbLoginButton);
 		
 		// Put everything together
 		accountAccessPanel.add(loginPanel);
@@ -278,26 +279,37 @@ public class UserPanel extends LayoutPanel {
 	 * Load the User Info Panel with two tabs, favorite tab and profile tab
 	 */
 	private void loadUserInfoPanel() {
-		Widget fbLoginButton = new HTML(this.fbLoginButton.getElement().getInnerHTML());
+		fbLoginButton2 = new HTML(this.fbLoginButton.getElement().getInnerHTML());
 		// TODO Implement profile panel and favorite panel for the logged in user
 		// Just add the labels for now 
 		favoritePanel.add(favoritePanelLabel);
 		profilePanel.add(profilePanelLabel);
 		profilePanel.add(logoutButton);
-		profilePanel.add(fbLoginButton);
+		profilePanel.add(fbLoginButton2);
 		
 		// Put everything together
 		accountInfoPanel.add(favoritePanel);
 		accountInfoPanel.add(profilePanel);
 	}
 
-	public TabLayoutPanel getAccountAccessPanel() {
+	TabLayoutPanel getAccountAccessPanel() {
 		return accountAccessPanel;
 	}
 
-	public TabLayoutPanel getAccountInfoPanel() {
+	TabLayoutPanel getAccountInfoPanel() {
 		return accountInfoPanel;
 	}
-
+	
+	PushButton getLogoutButton() {
+		return logoutButton; 
+	}
+	
+	VerticalPanel getFavoritePanel() {
+		return favoritePanel;
+	}
+	
+	Widget getFbButton() {
+		return fbLoginButton2;
+	}
 	
 }

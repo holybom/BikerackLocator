@@ -4,6 +4,7 @@ import com.codeunicorns.bikerack.client.Bikerack;
 import com.codeunicorns.bikerack.client.LoginInfo;
 import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -101,19 +102,22 @@ public class UIController {
 	 * @param isLoggedIn 
 	 * @param loginInfo if null then user is not logged in, if not null then user is logged in
 	 */
-	public void setLoginStatus(boolean isLoggedIn, LoginInfo loginInfo) {
-		if (isLoggedIn) {
+	public void setLoginStatus(LoginInfo loginInfo) {
+		if (loginInfo.isLoggedIn()) {
 			// set welcome message
+			//Window.alert("settext1: " + loginInfo.getNickname());
 			statusPanel.setWelcomeLabel("Welcome back " + loginInfo.getNickname() + "!");
-			// select the favorites tab to display first
-			//accountInfoPanel.selectTab(favoritePanel);
-			// hide the account login/register and login prompt panels, 
-			// show welcome label and account info panels
-			
 			statusPanel.getNotLoggedInLabelPanel().setVisible(false);
 			statusPanel.getLoggedInLabelPanel().setVisible(true);
 			userPanel.setWidgetVisible(userPanel.getAccountAccessPanel(), false);
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), true);
+			userPanel.getFavoritePanel().add(userPanel.getFbButton());
+			userPanel.getFavoritePanel().add(userPanel.getLogoutButton());
+			if (loginInfo.isFacebook()) {
+				//userPanel.getFavoritePanel().add(userPanel.getFbButton());
+				userPanel.getFavoritePanel().remove(userPanel.getLogoutButton());
+			}
+			else userPanel.getFavoritePanel().remove(userPanel.getFbButton());
 			if (loginInfo != null && loginInfo.isAdmin()) dataMappingPanel.add(dataMappingPanel.getImportPanel());
 			else dataMappingPanel.remove(dataMappingPanel.getImportPanel());
 		}

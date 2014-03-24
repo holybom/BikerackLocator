@@ -29,19 +29,35 @@ public class User {
 	private Date createDate;
 	@Persistent
 	private String facebookId;
+	@Persistent
+	private boolean isFacebook;
 	
 	
 	public User() {
 		this.createDate = new Date();
 	}
 	
-	public User(String emailAddress, String nickName, String userName, String password, boolean isAdmin) {
+	public String getFacebookId() {
+		return facebookId;
+	}
+
+	public void setFacebookId(String facebookId) {
+		if (!isFacebook) this.facebookId = facebookId;
+	}
+
+	public boolean isFacebook() {
+		return isFacebook;
+	}
+
+	public User(String emailAddress, String nickName, String userName, String password, boolean isAdmin, String facebookId, boolean isFacebook) {
 		this();
 		this.emailAddress = emailAddress;
 		this.nickName = nickName;
 		this.userName = userName;
 		this.password = password;
 		this.isAdmin = isAdmin;
+		this.facebookId = facebookId;
+		this.isFacebook = isFacebook;
 	}
 
 	

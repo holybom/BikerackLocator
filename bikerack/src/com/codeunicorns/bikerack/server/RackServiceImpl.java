@@ -6,8 +6,6 @@ import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
-
-import com.codeunicorns.bikerack.client.DelayLock;
 import com.codeunicorns.bikerack.client.Rack;
 import com.codeunicorns.bikerack.client.RackService;
 import com.google.appengine.api.datastore.Query.SortDirection;
@@ -45,7 +43,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 			//System.out.println("get: " + results.get(i).getStreetNum() + " " + results.get(i).getStreetName());
 			racks[i] = results.get(i);
 		}
-		System.out.println("Get: Number of Racks: " + racks.length);
+		//System.out.println("Get: Number of Racks: " + racks.length);
 		
 		return racks;
 	}
@@ -60,11 +58,16 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		RackServiceImpl.racks = racks;
 		if (bypassPersistence) return true;
 		//System.out.println("getBeforeSet");
-		//for (int i = 0; i <= 3; i++) 
-		deleteAllRacks();
-		pm = PMF.getPersistenceManager();
+		//for (int i = 0; i <= 3; i++)
+		int i = getRacks().length;
+		int f;
 		//System.out.println("Set: Number of Racks: " + racks.length);
+		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
+			Query q = pm.newQuery(Rack.class);
+			List<Rack> results = (List<Rack>) q.execute();
+			if (results != null && results.size() != 0) pm.deletePersistentAll(results);
+			while ((f = getRacks().length) < i && f > 0) i = f;
 //		for (Rack rack : racks) {
 //			System.out.println("set: " + rack.getStreetNum() + " " + rack.getStreetName());
 //			pm.makePersistent(new Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(),
@@ -76,8 +79,8 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 			pm.close();
 		}
 		//System.out.println("set All");
-		System.out.print("After set: ");
-		getRacks();
+		//System.out.print("After set: ");
+		//getRacks();
 		return true; 
 	}
 	
@@ -85,29 +88,22 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		RackServiceImpl.params = params;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public void deleteAllRacks() {
-		pm = PMF.getPersistenceManager();
-		try {
-			Query q = pm.newQuery(Rack.class);
-			List<Rack> results = (List<Rack>) q.execute();
-			//for (Rack rack : results) {
-				//System.out.println("delete: " + rack.getStreetNum() + " " + rack.getStreetName());
-				//pm.deletePersistent(rack);
-			//}
-//			q.setFilter("lat > minLat");
-//			q.declareParameters("int minLat");
-//			q.deletePersistentAll(-9999);
-//			System.out.println("Delete: Number of Racks: " + results.size());
-			if (results != null && results.size() != 0) pm.deletePersistentAll(results);
-			}
-			finally {
-				//pm.refreshAll();
-				pm.close();
-			}
-		System.out.print("After delete: ");
-		getRacks();
-	}
+//	@SuppressWarnings("unchecked")
+//	public void deleteAllRacks(PersistenceManager pm) {
+//			Query q = pm.newQuery(Rack.class);
+//			List<Rack> results = (List<Rack>) q.execute();
+//			//for (Rack rack : results) {
+//				//System.out.println("delete: " + rack.getStreetNum() + " " + rack.getStreetName());
+//				//pm.deletePersistent(rack);
+//			//}
+////			q.setFilter("lat > minLat");
+////			q.declareParameters("int minLat");
+////			q.deletePersistentAll(-9999);
+////			System.out.println("Delete: Number of Racks: " + results.size());
+//			if (results != null && results.size() != 0) pm.deletePersistentAll(results);
+//		System.out.print("After delete: ");
+//		getRacks();
+//	}
 	
 	void setBypassPersistence(boolean bypassPersistence) {
 		RackServiceImpl.bypassPersistence = bypassPersistence;

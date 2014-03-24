@@ -136,5 +136,16 @@ public class FBCore {
     protected void callbackSuccess(AsyncCallback<JavaScriptObject> callback, JavaScriptObject obj) {
         callback.onSuccess (obj);
     }
+    
+    /**
+     * Modified from here
+     */
+    
+    /**
+	 * Wrapper method
+	 */
+	public native JavaScriptObject getUserId() /*-{
+		return $wnd.FB.getAuthResponse().userID;
+	}-*/;
 
 }

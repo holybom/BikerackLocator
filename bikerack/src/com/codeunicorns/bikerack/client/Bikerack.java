@@ -84,27 +84,21 @@ public class Bikerack implements EntryPoint {
 	private AdminServiceAsync adminService;
 	private AccountServiceAsync accountService;
 	private RackServiceAsync rackService;
+	private FacebookService facebookService;
 	private Boolean dataGeocoded = false;
 	private String[] titleLine;
 	private boolean geoCode = false;
-	//private boolean gotRacks = false;
 	private boolean triedLoggedIn = false;
 	private boolean triedGetRacks = false;
 	private Geocoder geocoder = Geocoder.create();
 	private int geocodeCount = 0;
-	private FBCore fbCore;
-	private FBEvent fbEvent;
-	private boolean isFacebook = false;
-	private LoginInfo loginInfo = null;
-	private boolean isLoggedIn = false;
+	private LoginInfo loginInfo = new LoginInfo("","","",1);
 	private Label titleLineLabel = new Label("");
-	private boolean status = true;
-	private boolean cookie = true;
-	private boolean xfbml = true;	
+	private Timer refreshRacks;
+	private int REFRESH_INTERVAL = 120000;
 	
 	/**
 	 * This is the entry point method. Where everything starts.
-
 	 */
 	public void onModuleLoad() {
 		// initialize server and facebook services
@@ -112,19 +106,22 @@ public class Bikerack implements EntryPoint {
 		// build UI
 		uiController = UIController.getInstance(this);
 		// set login status of the web app to set visibility of the panels accordingly
-		uiController.setLoginStatus(getLoginInfo(), loginInfo);
-		// Get bike rack data from server
-		Timer refreshRacks = new Timer() {
+		uiController.setLoginStatus(loginInfo);
+		// get loginInfo from cookie or facebook
+		getLoginInfo();
+		// Get bike rack data from server periodically
+		refreshRacks = new Timer() {
 			@Override
 			public void run() {
 				getServerRacks();
 			}
 		};
-		refreshRacks.scheduleRepeating(60000);
+		refreshRacks.scheduleRepeating(REFRESH_INTERVAL);
 		refreshRacks.run();
 	}
 	
 	/**
+	 * DATA IN
 	 * This function act as a receiver for server requests from the ui objects, through UIController
 	 * This is the best design I can think of so far as UI and this class are tightly connected
 	 * @param name name of the request (login, logout, register, import data, load data, set url)
@@ -142,6 +139,7 @@ public class Bikerack implements EntryPoint {
 	}
 	
 	/**
+	 * DATA OUT
 	 * This function also acts as a receiver, but for direct data grab from the UI
 	 * @param name which data that the UI wants
 	 * @return the requested data
@@ -160,87 +158,92 @@ public class Bikerack implements EntryPoint {
 	 * to be sent to server for authentication
 	 */
 	private void login(final String[] loginRequest) {
-		if (!checkInput(loginRequest)) {
-			return;
+		if (!checkInput(loginRequest)) return;
+		accountService.login(loginRequest, new AsyncCallback<LoginInfo>() {
+			public void onFailure(Throwable error) {
+				triedLoggedIn = true;
+				handleError(error);
+			}
+			public void onSuccess(LoginInfo result) {
+				triedLoggedIn = true;
+				handleLogin(loginRequest, result);
+				}
+		});
+	}
+	
+	/**
+	 * Handle result of login request to server
+	 * @param request the request with username and password
+	 * @param result the returned user access state
+	 */
+	private void handleLogin(String[] request, LoginInfo result) {
+		if (result != null) {
+			// set login status
+			loginInfo = result;
+			if (result.isAdmin()) adminService = GWT.create(AdminService.class);
+			if (result.isFacebook()) return;
+			// set cookie
+			String loginCookie = request[0] + " " + request[1];
+			Cookies.setCookie("bikeracklocator", loginCookie);
+			uiController.setLoginStatus(loginInfo);
+			}
+		else {
+			if (request.length == 1) register(request);
+			else Window.alert("Invalid username or password");
 		}
-		AccountServiceAsync loginService = GWT.create(AccountService.class);
-		loginService.login(loginRequest,
-				new AsyncCallback<LoginInfo>() {
-					public void onFailure(Throwable error) {
-						triedLoggedIn = true;
-						handleError(error);
-					}
-
-					public void onSuccess(LoginInfo result) {
-						triedLoggedIn = true;
-							if (result != null) {
-								loginInfo = new LoginInfo(result.getEmailAddress(), result.getNickname(), result.isAdmin());
-								// set login status
-								isLoggedIn = true;
-								if (loginInfo.isAdmin()) adminService = GWT.create(AdminService.class);
-								// set cookie
-								String loginInfo = loginRequest[0] + " " + loginRequest[1];
-								Cookies.setCookie("bikeracklocator", loginInfo);
-								}
-							else {
-								Window.alert("Invalid username or password");
-							}
-							uiController.setLoginStatus(isLoggedIn, loginInfo);
-						}
-				});
 	}
 	
 	/**
 	 * Register new account process, send request to server. If successful, will perform login operation
 	 * with LoginInfo sent back by server for confirmation.
-	 * @param formRequest contains {email, nickName, username, password, adminCode};
+	 * @param request contains {email, nickName, username, password, adminCode} or {facebookID};
 	 */
-	private void register(final String[] formRequest) {
-		if (!checkInput(formRequest)) {
-			return;
+	private void register(final String[] request) {
+		if (!checkInput(request)) return;
+		accountService.register(request, new AsyncCallback<LoginInfo>() {
+			public void onFailure(Throwable error) {
+				handleError(error);
+			}
+		
+			public void onSuccess(LoginInfo result) {
+				handleRegister(request, result);
+			}
+		});
+	}
+	
+	/**
+	 * Return register result from server, use its type to determine different kind of success (isAdmin, isFacebook)
+	 * @param result Invalid user access state, do not use it as client's official loginInfo, only use its type to make one
+	 */
+	private void handleRegister(String[] request, LoginInfo result) {
+		if (result != null) {
+			if (request.length == 1) {}//uiController.setLoginStatus(loginInfo = new LoginInfo("","",result.getFacebookId(), 2));
+			else Window.alert("Please log in using your new username and password"); 
 		}
-		AccountServiceAsync loginService = GWT.create(AccountService.class);
-		loginService.register(formRequest,
-				new AsyncCallback<LoginInfo>() {
-					public void onFailure(Throwable error) {
-						handleError(error);
-					}
-					
-					public void onSuccess(LoginInfo result) {
-						if (result != null) {
-							// Alert user if admin code was wrong
-							if (formRequest[4] != "") {
-								if (result.isAdmin()) {
-									Window.alert("You have been registered as Admin");
-								}
-								else Window.alert("Invalid admin code, you have been registered as a regular user");
-							}
-							Window.alert("Please log in using your new username and password");
-						}
-						else {
-							Window.alert("Invalid information or Username already exists");
-						}
-					}
-			});
+		else if (request.length == 1) System.out.println("Error: Cannot register facebook user"); 	
+		else Window.alert("Invalid information or Username already exists");
 	}
 	
 	/**
 	 * 
-	 * @param request is {username, password} or {email, nickName, username, password, adminCode}
+	 * @param request is {username, password} or {email, nickName, username, password, adminCode} or {facebookID}
 	 * @return whether input is valid
 	 */
 	private boolean checkInput(String[] request) {
+		if (request.length == 1) return true;
 		int i = 0;
+		int end = request.length;
 		// if request is from register form, then checks email separately and starts from 1 instead
 		if (request.length == 5) {	
-			if (request.length == 5 && !request[i].matches("^[0-9a-z]+(\\_[0-9a-z]+)*(\\.[0-9a-z]+(\\_[0-9a-z]+)*){0,1}\\@[0-9a-z]+\\.[0-9a-z]+$")) {
+			if (request.length == 5 && !request[0].matches("^[0-9a-z]+(\\_[0-9a-z]+)*(\\.[0-9a-z]+(\\_[0-9a-z]+)*){0,1}\\@[0-9a-z]+\\.[0-9a-z]+$")) {
 				Window.alert("Invalid email");
 				return false;
 			}
 			i = 1;
+			end = request.length - 1;
 		}
 		// traverse through the request array and checks every remaining textbox.
-		while (i < request.length) {
+		while (i < end) {
 			if (request[i] == "" && i != 4) return false; 
 			if (!request[i].matches("^[0-9A-Za-z]{5,15}$")) {
 				Window.alert("Input must be 5-15 alphanumeric characters");
@@ -252,33 +255,25 @@ public class Bikerack implements EntryPoint {
 	}
 
 	/**
-	 * logout process, remove cookie from browser and set client login status to loggedout
+	 * logout process, remove cookie from browser and set client login status to logged-out
 	 */
 	private void logout() {
-		loginInfo = null;
-		isLoggedIn = false;
-		uiController.setLoginStatus(false, loginInfo);
+		loginInfo = new LoginInfo("","","",1);
+		uiController.setLoginStatus(loginInfo);
 		// remove cookie
 		Cookies.removeCookie("bikeracklocator");
 	}
 	
 	/**
 	 * Retrieve login info from browser on first run by mean of cookie
-	 * @return true if already logged in, else false
 	 */
-	private boolean getLoginInfo() {		
+	private void getLoginInfo() {		
 		String cookieVal = Cookies.getCookie("bikeracklocator");
 		if (cookieVal != null) {
-		//loginInfo = null;
-		//isLoggedIn = false;
-		//}
-		//else {
 			login(cookieVal.split(" "));
-			//Timer lock = new Timer();
 		}
 		// Get facebook Info
-		fbCore.getLoginStatus(new LoginStatusCallback ());
-		return isLoggedIn;
+		facebookService.getLoginStatus();
 	}
 	
 
@@ -310,7 +305,7 @@ public class Bikerack implements EntryPoint {
 
 
 	/**
-	 * @param adminService
+	 * 
 	 */
 	private void getTitleLine() {
 		adminService.getTitleLine(new AsyncCallback<String[]>() {
@@ -334,6 +329,7 @@ public class Bikerack implements EntryPoint {
 	/**
 	 */
 	private void loadData() {
+		refreshRacks.cancel();
 		adminService.loadData(null, new AsyncCallback<Boolean>() {
 				public void onFailure(Throwable error) {
 					uiController.importSuccessful(true);
@@ -349,7 +345,9 @@ public class Bikerack implements EntryPoint {
 						//Window.alert("Parse successful, wait for geocoding");
 					}
 					geoCode = true;
-					getServerRacks();
+					refreshRacks.scheduleRepeating(REFRESH_INTERVAL);
+					refreshRacks.run();
+					//getServerRacks();
 					uiController.importSuccessful(true);
 				}
 		});
@@ -391,7 +389,7 @@ public class Bikerack implements EntryPoint {
 					Window.alert("Error sending geocodes to server");
 				}
 				//testGetRacks();
-				//else Window.alert("Geocodes sent to server");
+				else System.out.println("Geocodes sent to server");
 			}
 		});
 	}
@@ -451,7 +449,7 @@ public class Bikerack implements EntryPoint {
 			@Override
 			public void onFailure(Throwable caught) {
 				triedGetRacks = true;
-				Window.alert("testGetRacks: failure connecting to server");
+				Window.alert("GetRacks: failure connecting to server");
 			}
 
 			@Override
@@ -461,7 +459,8 @@ public class Bikerack implements EntryPoint {
 					//Window.alert("No data found or error getting bike racks data from server");
 				}
 				else {
-					if (racks != null && racks.length >= result.length) return;
+					System.out.println("Client: GetRacks returns: " + result.length);
+					if (racks != null && racks.length > result.length) return;
 					racks = result;
 					uiController.rebuildTableView(racks);	
 					if (racks.length != 0 && racks[0].getLat() < 9999 && racks[0].getLng() < 9999) uiController.drawBikeracks(racks);
@@ -505,60 +504,18 @@ public class Bikerack implements EntryPoint {
 			}
 		});
 	}
-	
-	//
-	// Callback used when session status is changed
-	//
-	class SessionChangeCallback extends FacebookCallback<JavaScriptObject> {
-		public void onSuccess ( JavaScriptObject response ) {
-		    // Make sure cookie is set so we can use the non async method
-		    //renderHomeView ();
-			Window.alert("Session changed");
-		}
-	}
-	
-	//
-	// Callback used to retrieve user info when logged in
-	//
-	class UserCallback extends FacebookCallback<JavaScriptObject> {
-		public void onSuccess ( JavaScriptObject response ) {
-			JSOModel jso = response.cast();
-			loginInfo = new LoginInfo("Email Not Supported",jso.get("name"),false);
-		}
-	}
-	
-	// Callback used when checking login status
-	class LoginStatusCallback extends FacebookCallback<JavaScriptObject> {
-		public void onSuccess ( JavaScriptObject response ) {
-			//renderApp( Window.Location.getHash() );
-			Window.alert("Login Status Retrieved");
-			if (fbCore.getAuthResponse() != null) {
-				isLoggedIn = true;
-				// TODO: fake login info for facebook users for testing, need to integrate with current register system
-				loginInfo = new LoginInfo("Email Not Supported", "Facebook User", false);
-				fbCore.api ( "/me" , new UserCallback());
-			}
-			else isLoggedIn = false;
-			uiController.setLoginStatus(isLoggedIn, loginInfo);
-			FBXfbml.parse();
-		}
-	}
-	
-	private void initServices() {
-		String APPID = "1483880728501371";
-		fbCore = GWT.create(FBCore.class);
-		fbEvent = GWT.create(FBEvent.class);
-		fbCore.init(APPID, status, cookie, xfbml);
-		// Get notified when user session is changed
-		//
-		SessionChangeCallback sessionChangeCallback = new SessionChangeCallback ();
-		fbEvent.subscribe("auth.sessionChange",sessionChangeCallback);
 		
+	private void initServices() {
 		accountService = GWT.create(AccountService.class);
 		rackService = GWT.create(RackService.class);
+		facebookService = new FacebookService(this);
 		adminService = null;
 	}
-
+	
+	LoginInfo getClientLoginInfo() {
+		return loginInfo;
+	}
+	
 	private Rack[] getRacks() {
 		return racks;
 	}
@@ -566,11 +523,14 @@ public class Bikerack implements EntryPoint {
 	private Widget getTitleLineLabel() {
 		return titleLineLabel;
 	}
+	
+	 void setLoginStatus(LoginInfo loginInfo) {
+		this.loginInfo = loginInfo;
+		uiController.setLoginStatus(loginInfo);
+	}
 
 	private void handleError(Throwable error) {
 		Window.alert(error.getMessage());
 	}
-
-
 }
 
