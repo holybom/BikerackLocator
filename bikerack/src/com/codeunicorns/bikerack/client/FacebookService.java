@@ -18,10 +18,10 @@ public class FacebookService {
 	private boolean cookie = true;
 	private boolean xfbml = true;	
 	private Timer refreshFacebook;
-	private int FACEBOOK_REFRESH = 1000;
-	private LoginStatusCallback loginStatus;
-	private SessionChangeCallback sessionChangeCallback;
-	private UserCallback userCallback;
+	private int FACEBOOK_REFRESH =10000;
+	//private LoginStatusCallback loginStatus;
+	//private SessionChangeCallback sessionChangeCallback;
+	//private UserCallback userCallback;
 	private Bikerack main;
 	
 	public FacebookService(Bikerack main) {
@@ -29,64 +29,76 @@ public class FacebookService {
 		String APPID = "1483880728501371";
 		fbCore = GWT.create(FBCore.class);
 		fbEvent = GWT.create(FBEvent.class);
-		fbCore.init(APPID, status, cookie, xfbml);
-		sessionChangeCallback = new SessionChangeCallback ();
-		fbEvent.subscribe("auth.sessionChange",sessionChangeCallback);
-		loginStatus = new LoginStatusCallback();
-		userCallback = new UserCallback();
-		
+		fbCore.init(APPID, status, xfbml);
+//		sessionChangeCallback = new SessionChangeCallback ();
+		fbEvent.subscribe("auth.statusChange",new LoginStatusCallback());
+//		userCallback = new UserCallback();
 		refreshFacebook = new Timer() {
 			@Override
 			public void run() {
 				// Get facebook Info
-				fbCore.getLoginStatus(loginStatus);
+				getLoginStatus();
 			}
 		};
 		refreshFacebook.scheduleRepeating(FACEBOOK_REFRESH);
 	}
 	
-	//
-	// Callback used when session status is changed
-	//
-	class SessionChangeCallback extends FacebookCallback<JavaScriptObject> {
-		public void onSuccess ( JavaScriptObject response ) {
-			Window.alert("Session changed");
-		}
-	}
-	
-	//
-	// Callback used to retrieve user info when logged in
-	//
+	/**
+	* Callback used to retrieve detailed info of the logged in user
+	*/
 	class UserCallback extends FacebookCallback<JavaScriptObject> {
 		public void onSuccess ( JavaScriptObject response ) {
 			JSOModel jso = response.cast();
 			String userId = jso.get("id");	
 			LoginInfo loginInfo = main.getClientLoginInfo();
-			if ((loginInfo.getType() == 3) || (loginInfo.getType() == 1) || (loginInfo.isFacebook() && (loginInfo.getFacebookId().compareTo(userId) != 0))) { 
+			if (loginInfo.getType() == 1) {
+				//Window.alert("logginin");
 				String[] request = {userId};
-				main.clientRequest("logout", null);
+				//main.clientRequest("logout", null);
 				main.clientRequest("register", request);
 				loginInfo = new LoginInfo(jso.get("email"),jso.get("name"),userId, 2);
-//				Window.alert(userId + " " + jso.get("name") + " " + jso.get("email"));
-//				Window.alert(loginInfo.getNickname());
 				main.setLoginStatus(loginInfo);	
 			}
 			//Window.alert(userId + " " + jso.get("name") + " " + jso.get("email"));
 		}
 	}
 	
-	// Callback used when checking login status
+	/** Callback used for periodic check if the user has logged out of facebook in-app or somewhere else
+	*/
 	class LoginStatusCallback extends FacebookCallback<JavaScriptObject> {
 		public void onSuccess ( JavaScriptObject response ) {
-			if (fbCore.getAuthResponse() != null) {
-				fbCore.api ( "/me" , userCallback);
+			//Window.alert("Retrieved loginInfo");
+			JSOModel jso = response.cast();
+			LoginInfo loginInfo = main.getClientLoginInfo();
+			if (jso.get("status").compareTo("connected") == 0) {
+				//Window.alert("connected");
+				fbCore.api ( "/me" , new UserCallback());
+				if (!loginInfo.isFacebook()) FBXfbml.parse();
 			}
-			else if (main.getClientLoginInfo().isFacebook()) main.clientRequest("logout", null);
-			FBXfbml.parse();
+			else if (jso.get("status").compareTo("not_authorized") == 0) {
+				if (!loginInfo.isFacebook()) FBXfbml.parse();
+			}
+			else if (main.getClientLoginInfo().isFacebook()) {
+				//Window.alert("not logged in");
+				main.clientRequest("logout", null);
+				FBXfbml.parse();
+			}
 		}
 	}
 	
+//	/** Callback used to handle user clicking the login button
+//	 */
+//	class LoginCallback extends FacebookCallback<JavaScriptObject> {
+//		public void onSuccess ( JavaScriptObject response ) {
+//			
+//		}
+//	};
+//	
+//	/** Callback used to handle user clicking the logout button
+//	 */
+//	class LogoutCallback extends FacebookCallback<JavaScriptObject> {};
+	
 	public void getLoginStatus() {
-		fbCore.getLoginStatus(loginStatus);
+		fbCore.getLoginStatus(new LoginStatusCallback());
 	}
 }

@@ -69,11 +69,11 @@ public class UserPanel extends LayoutPanel {
 	private PasswordTextBox passwordTextbox = new PasswordTextBox();
 	private PasswordTextBox passwordTextbox2 = new PasswordTextBox();
 	private PasswordTextBox confirmPasswordTextbox = new PasswordTextBox();
-	Widget fbLoginButton = new HTML(
+	private Widget fbLoginButton = new HTML(
 			"<div class='fb-login-button' data-max-rows='1'" 
 			+ "data-size='medium' data-show-faces='false'" 
 			+ "data-auto-logout-link='true'></div>");
-	Widget fbLoginButton2;
+	//Widget fbLoginButton2;
 	private UIController uiController;
 	
 	public static UserPanel getInstance(UIController uiController) {
@@ -242,7 +242,7 @@ public class UserPanel extends LayoutPanel {
 			public void onClick(ClickEvent event) {
 			// Logout method is local, initiate client log out procedure
 				uiController.clientRequest("logout", null);
-				StatusPanel.getInstance().getWelcomeLabel().setText("You have been logged out.");
+				TitleStatusPanel.getInstance().getWelcomeLabel().setText("You have been logged out.");
 			}
 		});		
 		signupButton.addClickHandler(new ClickHandler() {
@@ -279,13 +279,13 @@ public class UserPanel extends LayoutPanel {
 	 * Load the User Info Panel with two tabs, favorite tab and profile tab
 	 */
 	private void loadUserInfoPanel() {
-		fbLoginButton2 = new HTML(this.fbLoginButton.getElement().getInnerHTML());
+		//fbLoginButton2 = new HTML(this.fbLoginButton.getElement().getInnerHTML());
 		// TODO Implement profile panel and favorite panel for the logged in user
 		// Just add the labels for now 
 		favoritePanel.add(favoritePanelLabel);
 		profilePanel.add(profilePanelLabel);
 		profilePanel.add(logoutButton);
-		profilePanel.add(fbLoginButton2);
+		//profilePanel.add(fbLoginButton2);
 		
 		// Put everything together
 		accountInfoPanel.add(favoritePanel);
@@ -309,7 +309,11 @@ public class UserPanel extends LayoutPanel {
 	}
 	
 	Widget getFbButton() {
-		return fbLoginButton2;
+		return fbLoginButton;
+	}
+	
+	VerticalPanel getLoginPanel() {
+		return loginPanel;
 	}
 	
 }

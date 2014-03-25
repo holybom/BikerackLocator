@@ -8,21 +8,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * @author ola the wrapper
  * @link https://github.com/olams/GwtFB
  */
-public class FBCore {
-
-	/**
-	 * Wrapper method
-	 * @see http://developers.facebook.com/docs/reference/javascript/FB.init
-	 */
-	public native void init (String appId, boolean status, boolean cookie, boolean xfbml) /*-{
-		$wnd.FB.init({
-			'appId': appId, 
-			'status': status,
-			'cookie': cookie,
-			'xfbml' : xfbml
-		});
-	}-*/;
-	
+public class FBCore {	
 	
 	/**
 	 * Wrapper method
@@ -72,17 +58,6 @@ public class FBCore {
     	});
 	}-*/; 
 	
-	/**
-	 * Wrapper method
-	 */
-	public native void getLoginStatus (AsyncCallback<JavaScriptObject> callback) /*-{
-        var app=this;
-		$wnd.FB.getLoginStatus(function(response) {
-            app.@com.gwtfb.sdk.FBCore::callbackSuccess(Lcom/google/gwt/user/client/rpc/AsyncCallback;Lcom/google/gwt/core/client/JavaScriptObject;)(callback,response);
-		});
-		
-	}-*/;
-
 	/**
 	 * Wrapper method
 	 */
@@ -141,6 +116,18 @@ public class FBCore {
      * Modified from here
      */
     
+	/**
+	 * Wrapper method
+	 * @see http://developers.facebook.com/docs/reference/javascript/FB.init
+	 */
+	public native void init (String appId, boolean status, boolean xfbml) /*-{
+		$wnd.FB.init({
+			'appId': appId, 
+			'status': status,
+			'xfbml' : xfbml
+		});
+	}-*/;
+    
     /**
 	 * Wrapper method
 	 */
@@ -148,4 +135,15 @@ public class FBCore {
 		return $wnd.FB.getAuthResponse().userID;
 	}-*/;
 
+	/**
+	 * Wrapper method
+	 */
+	public native void getLoginStatus (AsyncCallback<JavaScriptObject> callback) /*-{
+        var app=this;
+		$wnd.FB.getLoginStatus(function(response) {
+            app.@com.gwtfb.sdk.FBCore::callbackSuccess(Lcom/google/gwt/user/client/rpc/AsyncCallback;Lcom/google/gwt/core/client/JavaScriptObject;)(callback,response);
+		});
+		
+	}-*/;
+	
 }

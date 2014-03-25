@@ -22,8 +22,8 @@ public class UIController {
 	
 	private static UIController uiInstance = null;
 	private final DockLayoutPanel mainPanel = new DockLayoutPanel(Unit.PX);
-	private AppTitlePanel appTitlePanel;
-	private StatusPanel statusPanel;
+	private TitleStatusPanel statusPanel;
+	private FacebookPanel fbPanel;
 	private UserPanel userPanel;
 	private RackPanel rackPanel;
 	private DataMappingPanel dataMappingPanel;
@@ -38,22 +38,22 @@ public class UIController {
 	/**
 	 * Main Panel is implemented as a Dock Panel, in which 5 widgets will be added North, South, East, West
 	 * and Center of the Dock. Widgets have to and will be added in the edges first and last one in center.
-	 * 			 			  Title (N)
+	 * 			 Title, Welcome Label/Signout Button (N)
 	 * 							I
 	 * 							I  
 	 * Rack/Search Panel-----Map API (C) -----User/Profile/Favorite Panel
 	 * 		(W)					I                  (E)
 	 * 							I
-	 * 			    Welcome Label/Signout Button (S)	
+	 * 			         Facebook Panel (S)	
 	 */
 	private UIController(Bikerack main) {
 		this.main = main;
-		// load app title on top
-		appTitlePanel = AppTitlePanel.getInstance();
-		mainPanel.addNorth(appTitlePanel, 100);
-		// load login prompt or welcome message and logout, at bottom 
-		statusPanel = StatusPanel.getInstance();
-		mainPanel.addSouth(statusPanel, 100);
+		// load app title, login prompt or welcome message on top
+		statusPanel = TitleStatusPanel.getInstance();
+		mainPanel.addNorth(statusPanel, 100);
+		// load facebook buttons and plugins at bottom 
+		fbPanel = FacebookPanel.getInstance();
+		mainPanel.addSouth(fbPanel, 150);
 		// load pane with list of bike racks and search results on left side
 		rackPanel = RackPanel.getInstance();
 		mainPanel.addWest(rackPanel, 250);
@@ -117,7 +117,9 @@ public class UIController {
 				//userPanel.getFavoritePanel().add(userPanel.getFbButton());
 				userPanel.getFavoritePanel().remove(userPanel.getLogoutButton());
 			}
-			else userPanel.getFavoritePanel().remove(userPanel.getFbButton());
+			else if (loginInfo.isAdmin()) {
+				userPanel.getFavoritePanel().remove(userPanel.getFbButton());
+			}
 			if (loginInfo != null && loginInfo.isAdmin()) dataMappingPanel.add(dataMappingPanel.getImportPanel());
 			else dataMappingPanel.remove(dataMappingPanel.getImportPanel());
 		}
@@ -129,6 +131,7 @@ public class UIController {
 			userPanel.setWidgetVisible(userPanel.getAccountAccessPanel(), true);
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), false);
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
+			userPanel.getLoginPanel().add(userPanel.getFbButton());
 			if (loginInfo != null && loginInfo.isAdmin()) dataMappingPanel.add(dataMappingPanel.getImportPanel());
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
 		}

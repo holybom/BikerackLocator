@@ -1,0 +1,2 @@
+serviceClass: com.codeunicorns.bikerack.client.AccountService
+path: FB21CF41B4C03072815E32C6309B73CF.gwt.rpc
