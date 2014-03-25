@@ -113,7 +113,7 @@ public class UIController {
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), true);
 			userPanel.getFavoritePanel().add(userPanel.getFbButton());
 			userPanel.getFavoritePanel().add(userPanel.getLogoutButton());
-			if (loginInfo.isFacebook()) {
+			if (loginInfo.isFacebookUser()) {
 				//userPanel.getFavoritePanel().add(userPanel.getFbButton());
 				userPanel.getFavoritePanel().remove(userPanel.getLogoutButton());
 			}
@@ -131,7 +131,6 @@ public class UIController {
 			userPanel.setWidgetVisible(userPanel.getAccountAccessPanel(), true);
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), false);
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
-			userPanel.getLoginPanel().add(userPanel.getFbButton());
 			if (loginInfo != null && loginInfo.isAdmin()) dataMappingPanel.add(dataMappingPanel.getImportPanel());
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
 		}

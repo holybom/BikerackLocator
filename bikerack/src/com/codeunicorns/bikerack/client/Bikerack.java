@@ -177,20 +177,20 @@ public class Bikerack implements EntryPoint {
 	 * @param result the returned user access state
 	 */
 	private void handleLogin(String[] request, LoginInfo result) {
-		if (result != null) {
+		if (result == null) return;
+		if (result.isLoggedIn()) {
 			// set login status
-			loginInfo = result;
-			if (result.isAdmin()) adminService = GWT.create(AdminService.class);
-			if (result.isFacebook()) return;
-			// set cookie
-			String loginCookie = request[0] + " " + request[1];
-			Cookies.setCookie("bikeracklocator", loginCookie);
-			uiController.setLoginStatus(loginInfo);
+			if (request.length > 1) {
+				if (result.isAdmin()) adminService = GWT.create(AdminService.class);
+				// set cookie
+				String loginCookie = request[0] + " " + request[1];
+				Cookies.setCookie("bikeracklocator", loginCookie);
 			}
-		else {
-			if (request.length == 1) register(request);
-			else Window.alert("Invalid username or password");
-		}
+			//Window.alert("logged in");
+			loginInfo = result;
+			uiController.setLoginStatus(loginInfo);
+		}	
+		else if (request.length > 1) Window.alert("Invalid username or password");
 	}
 	
 	/**
@@ -199,7 +199,7 @@ public class Bikerack implements EntryPoint {
 	 * @param request contains {email, nickName, username, password, adminCode} or {facebookID};
 	 */
 	private void register(final String[] request) {
-		if (!checkInput(request)) return;
+		if (request.length != 2 && !checkInput(request)) return;
 		accountService.register(request, new AsyncCallback<LoginInfo>() {
 			public void onFailure(Throwable error) {
 				handleError(error);
@@ -215,13 +215,15 @@ public class Bikerack implements EntryPoint {
 	 * Return register result from server, use its type to determine different kind of success (isAdmin, isFacebook)
 	 * @param result Invalid user access state, do not use it as client's official loginInfo, only use its type to make one
 	 */
-	private void handleRegister(String[] request, LoginInfo result) {
-		if (result != null) {
-			if (request.length == 1) {}//uiController.setLoginStatus(loginInfo = new LoginInfo("","",result.getFacebookId(), 2));
-			else Window.alert("Please log in using your new username and password"); 
+	private void handleRegister(String[] registerRequest, LoginInfo result) {
+		if (registerRequest.length != 2) {
+			if (result != null) Window.alert("Please log in using your new username and password");  	
+			else Window.alert("Invalid information or Username already exists");
 		}
-		else if (request.length == 1) System.out.println("Error: Cannot register facebook user"); 	
-		else Window.alert("Invalid information or Username already exists");
+		else {
+			String[] loginRequest = {registerRequest[0]};
+			login(loginRequest);
+		}
 	}
 	
 	/**
@@ -230,7 +232,6 @@ public class Bikerack implements EntryPoint {
 	 * @return whether input is valid
 	 */
 	private boolean checkInput(String[] request) {
-		if (request.length == 1) return true;
 		int i = 0;
 		int end = request.length;
 		// if request is from register form, then checks email separately and starts from 1 instead
@@ -273,7 +274,7 @@ public class Bikerack implements EntryPoint {
 			login(cookieVal.split(" "));
 		}
 		// Get facebook Info
-		facebookService.getLoginStatus();
+		facebookService.checkLogggedOut();
 	}
 	
 

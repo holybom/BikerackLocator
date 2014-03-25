@@ -21,6 +21,7 @@ public class LoginInfo implements Serializable {
 		emailAddress = "";
 		nickName = "";
 		type = 0;
+		facebookId = "";
 	}
 	
 	/**
@@ -65,7 +66,7 @@ public class LoginInfo implements Serializable {
 		return (type == 4);
 	}
 	
-	public boolean isFacebook() {
+	public boolean isFacebookUser() {
 		return (type == 2);
 	}
 	

@@ -26,15 +26,18 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	public LoginInfo login(String[] request) {
 		// Enable this to wipe database for testing purpose
 		//deleteAllUsers();
-		LoginInfo loginInfo = null;
+		//System.out.println(request[0]);
+		LoginInfo loginInfo = new LoginInfo("","","",1);
 		List<User> users = retrieveAllUsers();
 		for (int i = 0; i < users.size(); i++) {
 			User user = users.get(i);
 			if (request.length == 1) {
-				if (request[0] == user.getFacebookId()) {
-					loginInfo = new LoginInfo("", "", user.getFacebookId(), 2);
+				//System.out.println("client requests fb login: " + user.getFacebookId());
+				if (request[0].compareTo(user.getFacebookId()) == 0) {
+					loginInfo = new LoginInfo("", user.getNickName(), user.getFacebookId(), 2);
 					break;
 				}
+				//assert(request[0] != user.getFacebookId());
 				continue;
 			}
 			if (user.getUsername().compareTo(request[0]) == 0 && user.getPassword().compareTo(request[1]) == 0) {
@@ -109,10 +112,11 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	public LoginInfo register(String[] request) {
 		User user;
 		int type;
-		if (request.length == 1) {
+		if (request.length == 2) {
+			System.out.println("client request fb register");
 			String facebookId = request[0];
 			if (checkDuplicate(facebookId, "facebookid")) return null;
-			user = new User("","","","",false, facebookId, true);
+			user = new User("",request[1],"","",false, facebookId, true);
 			type = 2;
 		}
 		else if (request.length == 5) {

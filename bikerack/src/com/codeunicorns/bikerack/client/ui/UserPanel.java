@@ -73,6 +73,7 @@ public class UserPanel extends LayoutPanel {
 			"<div class='fb-login-button' data-max-rows='1'" 
 			+ "data-size='medium' data-show-faces='false'" 
 			+ "data-auto-logout-link='true'></div>");
+	
 	//Widget fbLoginButton2;
 	private UIController uiController;
 	
@@ -99,7 +100,10 @@ public class UserPanel extends LayoutPanel {
 	 */
 	private void loadUserAccessPanel() {
 
-		//Widget fbLoginButton = new HTML(this.fbLoginButton.getElement().getInnerHTML());
+		Widget fbLoginButton = new HTML(
+				"<div class='fb-login-button' data-max-rows='1'" 
+				+ "data-size='medium' data-show-faces='false'" 
+				+ "data-auto-logout-link='false'></div>");
 		
 		// Creating login UI
 		userNamePanel.add(userNameLabel);
@@ -111,7 +115,7 @@ public class UserPanel extends LayoutPanel {
 		loginPanel.add(userNamePanel);
 		loginPanel.add(passwordPanel);
 		loginPanel.add(loginButton);
-		loginPanel.add(this.fbLoginButton);
+		loginPanel.add(fbLoginButton);
 		
 		// Creating register UI
 		userNamePanel2.add(userNameLabel2);
@@ -285,7 +289,7 @@ public class UserPanel extends LayoutPanel {
 		favoritePanel.add(favoritePanelLabel);
 		profilePanel.add(profilePanelLabel);
 		profilePanel.add(logoutButton);
-		//profilePanel.add(fbLoginButton2);
+		profilePanel.add(fbLoginButton);
 		
 		// Put everything together
 		accountInfoPanel.add(favoritePanel);
