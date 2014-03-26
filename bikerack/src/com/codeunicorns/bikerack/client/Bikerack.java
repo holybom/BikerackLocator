@@ -136,6 +136,7 @@ public class Bikerack implements EntryPoint {
 		else if (name.compareTo("load") == 0) loadData();
 		else if (name.compareTo("settable") == 0) setTableView();
 		else if (name.compareTo("geturl") == 0) getDataURL();
+		else if (name.compareTo("fblogin") == 0) facebookService.login();
 	}
 	
 	/**
@@ -179,14 +180,16 @@ public class Bikerack implements EntryPoint {
 	private void handleLogin(String[] request, LoginInfo result) {
 		if (result == null) return;
 		if (result.isLoggedIn()) {
+			String loginCookie;
 			// set login status
 			if (request.length > 1) {
 				if (result.isAdmin()) adminService = GWT.create(AdminService.class);
-				// set cookie
-				String loginCookie = request[0] + " " + request[1];
-				Cookies.setCookie("bikeracklocator", loginCookie);
+				// set cookie contents
+				loginCookie = request[0] + " " + request[1];
 			}
-			//Window.alert("logged in");
+			else loginCookie = request[0]; // set cookie contents 
+			// set cookie
+			Cookies.setCookie("bikeracklocator", loginCookie);
 			loginInfo = result;
 			uiController.setLoginStatus(loginInfo);
 		}	
@@ -271,10 +274,11 @@ public class Bikerack implements EntryPoint {
 	private void getLoginInfo() {		
 		String cookieVal = Cookies.getCookie("bikeracklocator");
 		if (cookieVal != null) {
-			login(cookieVal.split(" "));
+			String[] loginInfo = cookieVal.split(" ");
+			login(loginInfo);
 		}
 		// Get facebook Info
-		facebookService.checkLogggedOut();
+		//facebookService.checkLogggedOut();
 	}
 	
 

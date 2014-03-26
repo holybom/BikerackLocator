@@ -48,6 +48,7 @@ public class UserPanel extends LayoutPanel {
 	private PushButton signupButton = new PushButton("Register");
 	private PushButton clearButton = new PushButton("Clear");
 	private PushButton logoutButton = new PushButton("Log out");
+	private PushButton fbLoginButton = new PushButton("Log In with Facebook");
 	private Label loginTitleLabel = new Label("ACCOUNT LOGIN");
 	private Label registerTitleLabel = new Label("REGISTER NEW ACCOUNT");
 	private Label favoritePanelLabel = new Label("FAVORITES");
@@ -69,10 +70,10 @@ public class UserPanel extends LayoutPanel {
 	private PasswordTextBox passwordTextbox = new PasswordTextBox();
 	private PasswordTextBox passwordTextbox2 = new PasswordTextBox();
 	private PasswordTextBox confirmPasswordTextbox = new PasswordTextBox();
-	private Widget fbLoginButton = new HTML(
-			"<div class='fb-login-button' data-max-rows='1'" 
-			+ "data-size='medium' data-show-faces='false'" 
-			+ "data-auto-logout-link='true'></div>");
+//	private Widget fbLoginButton = new HTML(
+//			"<div class='fb-login-button' data-max-rows='1'" 
+//			+ "data-size='medium' data-show-faces='false'" 
+//			+ "data-auto-logout-link='true'></div>");
 	
 	//Widget fbLoginButton2;
 	private UIController uiController;
@@ -100,10 +101,10 @@ public class UserPanel extends LayoutPanel {
 	 */
 	private void loadUserAccessPanel() {
 
-		Widget fbLoginButton = new HTML(
-				"<div class='fb-login-button' data-max-rows='1'" 
-				+ "data-size='medium' data-show-faces='false'" 
-				+ "data-auto-logout-link='false'></div>");
+//		Widget fbLoginButton = new HTML(
+//				"<div class='fb-login-button' data-max-rows='1'" 
+//				+ "data-size='medium' data-show-faces='false'" 
+//				+ "data-auto-logout-link='false'></div>");
 		
 		// Creating login UI
 		userNamePanel.add(userNameLabel);
@@ -277,6 +278,11 @@ public class UserPanel extends LayoutPanel {
 				adminCodeTextbox.setValue("");
 			}
 		});
+		fbLoginButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				uiController.clientRequest("fblogin", null);
+			}
+		});
 	}
 
 	/**
@@ -289,7 +295,7 @@ public class UserPanel extends LayoutPanel {
 		favoritePanel.add(favoritePanelLabel);
 		profilePanel.add(profilePanelLabel);
 		profilePanel.add(logoutButton);
-		profilePanel.add(fbLoginButton);
+		//profilePanel.add(fbLoginButton);
 		
 		// Put everything together
 		accountInfoPanel.add(favoritePanel);
