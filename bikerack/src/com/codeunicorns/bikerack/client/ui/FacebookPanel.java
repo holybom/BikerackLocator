@@ -5,6 +5,7 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PushButton;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -13,7 +14,7 @@ import com.google.gwt.user.client.ui.Widget;
  * Both "Welcome!" label and login label are loaded, but both are set to invisible
  * on top of each other 
  */	
-public class FacebookPanel extends VerticalPanel {
+public class FacebookPanel extends ScrollPanel {
 	private static FacebookPanel panelInstance = null;
 	private HorizontalPanel fbPanel = new HorizontalPanel();
 	private Widget fbLikeButton = new HTML(
