@@ -17,6 +17,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class FacebookPanel extends ScrollPanel {
 	private static FacebookPanel panelInstance = null;
 	private HorizontalPanel fbPanel = new HorizontalPanel();
+	private VerticalPanel mainFbPanel = new VerticalPanel();
 	private Widget fbLikeButton = new HTML(
 			"<div class='fb-like' data-href='http://0-dot-bikerack-codeunicorns.appspot.com/'" 
 			+ "data-layout='standard' data-action='like' data-show-faces='true' data-share='true'></div>");
@@ -36,7 +37,8 @@ public class FacebookPanel extends ScrollPanel {
 	private FacebookPanel() {
 		fbPanel.add(fbLoginButton);
 		fbPanel.add(fbLikeButton);
-		this.add(fbPanel);
-		this.add(fbCommentBox);
+		mainFbPanel.add(fbPanel);
+		mainFbPanel.add(fbCommentBox);
+		this.add(mainFbPanel);
 	}
 }
