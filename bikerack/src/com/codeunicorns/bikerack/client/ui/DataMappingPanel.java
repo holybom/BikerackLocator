@@ -13,6 +13,7 @@ import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LayoutPanel;
+import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.ScrollPanel;
@@ -51,6 +52,7 @@ private FlexTable racksTable = new FlexTable();
 private UIController uiController;
 private Rack[] racks;
 private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
+private MenuBar menu = new MenuBar(true);
 	
 	public static DataMappingPanel getInstance(UIController uiController) {
 		if (panelInstance == null) panelInstance = new DataMappingPanel(uiController);
@@ -90,8 +92,14 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 //	    latLngs[0] = (vancouverCity);
 	    //while (!triedGetRacks) {};
 	    if (racks != null && racks.length != 0 && racks[0].getLat() < 9999 && racks[0].getLng() < 9999)	drawBikeracks(racks);
+	    buildMenuBar();
 	  }
 	
+	private void buildMenuBar() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	/**
 	 * foo
 	 */
@@ -189,54 +197,11 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 	    marker.addRightClickListener(new RightClickHandler() {
 			@Override
 			public void handle(MouseEvent event) {
-				PopupPanel pp1 = new PopupPanel(true);
-				PopupPanel pp2 = new PopupPanel(true);
-				PopupPanel pp3 = new PopupPanel(true);
-				PopupPanel pp4 = new PopupPanel(true);
-				pp1.add(new Label("Top Left Corner"));
-				pp2.add(new Label("Bottom Left Corner"));
-				pp3.add(new Label("Top Right Corner"));
-				pp4.add(new Label("Bottoms Right Corner"));
-				LatLng mapSouthWestCorner = map.getBounds().getSouthWest();
-				LatLng mapNorthEastCorner = map.getBounds().getNorthEast();
-				Double mapWidthDegree = mapNorthEastCorner.lng() - mapSouthWestCorner.lng();
-				Double mapHeightDegree = mapNorthEastCorner.lat() - mapSouthWestCorner.lat();
-				Marker marker1 = Marker.create();
-				marker1.setPosition(mapSouthWestCorner);
-				Marker marker2 = Marker.create();
-				marker2.setPosition(mapNorthEastCorner);
-				Marker marker3 = Marker.create();
-				LatLng marker3Cor = LatLng.create(mapSouthWestCorner.lat() + mapHeightDegree, mapSouthWestCorner.lng());
-				marker3.setPosition(marker3Cor);
-				Marker marker4 = Marker.create();
-				LatLng marker4Cor = LatLng.create(mapNorthEastCorner.lat() - mapHeightDegree, mapNorthEastCorner.lng());
-				marker4.setPosition(marker4Cor);
-				marker1.setMap(map);
-				marker2.setMap(map);
-				marker3.setMap(map);
-				marker4.setMap(map);
-//				System.out.println(mapWidthDegree);
-//				System.out.println(mapHeightDegree);
-				int mapWidth = mapPanel.getOffsetWidth();
-				int mapHeight = mapPanel.getOffsetHeight();
-				int mapTop = mapPanel.getAbsoluteTop();
-				int mapLeft = mapPanel.getAbsoluteLeft();
-				pp1.setPopupPosition(mapLeft, mapTop);
-				pp2.setPopupPosition(mapLeft, mapTop + mapHeight);
-				pp3.setPopupPosition(mapLeft + mapWidth, mapTop);
-				pp4.setPopupPosition(mapLeft + mapWidth, mapTop + mapHeight);
-//				pp1.show();
-//				pp2.show();
-//				pp3.show();
-//				pp4.show();
-//				LatLng markerPosition = marker.getPosition();
-//				Double markerXRatio = (markerPosition.lng() - mapSouthWestCorner.lng())/mapWidthDegree; 
-//				Double markerYRatio = (mapNorthEastCorner.lat() - markerPosition.lat())/mapHeightDegree;
-//				int markerX = markerXRatio.intValue()*mapWidth + mapPanel.getAbsoluteLeft();
-//				int markerY = markerYRatio.intValue()*mapHeight + mapPanel.getAbsoluteTop();
-//				pp.setPopupPosition(markerX, markerY);
-				//pp.setPopupPosition(map.getBounds().getSouthWest(). + mapPanel.getAbsoluteLeft(), markerY.intValue() + mapPanel.getAbsoluteTop())
-//				pp.show();	
+				int[] screenPos = getScreenPosition(marker);
+				PopupPanel pp = new PopupPanel(true);
+				pp.add(new Label("Marker1"));
+				pp.setPopupPosition(screenPos[0], screenPos[1]);
+				pp.show();	
 			}});
 	    marker.addClickListener(new Marker.ClickHandler() {
 		      @Override
@@ -250,7 +215,6 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 	private InfoWindow createTooltip(Rack rack, LatLng latlng) {
 	    InfoWindowOptions tooltipOpt = InfoWindowOptions.create();
 	    tooltipOpt.setPosition(latlng);
-	    //tooltipOpt.setPixelOffset(Size.create(30, 20));
 	    String ttSkytrain = "";
 	    String ttBIA = "";
 	    if (rack.getSkytrain().length() != 0) ttSkytrain = "At " + rack.getSkytrain() + " Skytrain station.";
@@ -326,5 +290,26 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 
 	HorizontalPanel getImportPanel() {
 		return importPanel;
+	}
+
+	/**
+	 * Convert marker's current LatLng position to the actual client's screen position
+	 * @param marker the marker to get position of
+	 * @return the conversion result in {x-position, y-position}
+	 */
+	private int[] getScreenPosition(final Marker marker) {
+		int mapWidth = mapPanel.getOffsetWidth();
+		int mapHeight = mapPanel.getOffsetHeight();
+		LatLng markerPosition = marker.getPosition();
+		LatLng mapSouthWestCorner = map.getBounds().getSouthWest();
+		LatLng mapNorthEastCorner = map.getBounds().getNorthEast();
+		Double mapWidthDegree = mapNorthEastCorner.lng() - mapSouthWestCorner.lng();
+		Double mapHeightDegree = mapNorthEastCorner.lat() - mapSouthWestCorner.lat();
+		Double markerXRatio = (markerPosition.lng() - mapSouthWestCorner.lng())/mapWidthDegree; 
+		Double markerYRatio = (mapNorthEastCorner.lat() - markerPosition.lat())/mapHeightDegree;
+		Double markerX = markerXRatio*mapWidth + mapPanel.getAbsoluteLeft();
+		Double markerY = markerYRatio*mapHeight + mapPanel.getAbsoluteTop();
+		int[] result = {markerX.intValue(), markerY.intValue()};
+		return result;
 	}	
 }
