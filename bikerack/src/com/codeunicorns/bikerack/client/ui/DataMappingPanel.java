@@ -7,10 +7,13 @@ import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.ContextMenuEvent;
+import com.google.gwt.event.dom.client.ContextMenuHandler;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LayoutPanel;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
@@ -24,8 +27,10 @@ import com.google.maps.gwt.client.LatLng;
 import com.google.maps.gwt.client.MapOptions;
 import com.google.maps.gwt.client.MapTypeId;
 import com.google.maps.gwt.client.Marker;
+import com.google.maps.gwt.client.Marker.RightClickHandler;
 import com.google.maps.gwt.client.MarkerOptions;
 import com.google.maps.gwt.client.MouseEvent;
+import com.google.maps.gwt.client.Point;
 
 /**
  * And finally, this loads the map at the center
@@ -156,6 +161,20 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 			}});		
 	}
 	
+	
+//	class Menu implements ContextMenuHandler {
+//		PopupPanel pp = new PopupPanel(true);
+//		public Menu() {
+//			pp.add(new Label("This is a menu"));
+//		}
+//		@Override
+//		public void onContextMenu(ContextMenuEvent event) {
+//			pp.setPopupPosition(event.getNativeEvent().getClientX(), event.getNativeEvent().getClientY());
+//		    pp.show();
+//		}
+//	};
+	
+	
 	/**
 	 * Create markers for the map, based on the received dataset from the server
 	 * @param latLngs list of markers to create, might need to refactor this variable to global
@@ -167,6 +186,58 @@ private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 	    final Marker marker = Marker.create(markerOptions);
 	    final InfoWindow tooltip = createTooltip(rack, latLng);
 	    if (!tooltips.contains(tooltip)) tooltips.add(tooltip);
+	    marker.addRightClickListener(new RightClickHandler() {
+			@Override
+			public void handle(MouseEvent event) {
+				PopupPanel pp1 = new PopupPanel(true);
+				PopupPanel pp2 = new PopupPanel(true);
+				PopupPanel pp3 = new PopupPanel(true);
+				PopupPanel pp4 = new PopupPanel(true);
+				pp1.add(new Label("Top Left Corner"));
+				pp2.add(new Label("Bottom Left Corner"));
+				pp3.add(new Label("Top Right Corner"));
+				pp4.add(new Label("Bottoms Right Corner"));
+				LatLng mapSouthWestCorner = map.getBounds().getSouthWest();
+				LatLng mapNorthEastCorner = map.getBounds().getNorthEast();
+				Double mapWidthDegree = mapNorthEastCorner.lng() - mapSouthWestCorner.lng();
+				Double mapHeightDegree = mapNorthEastCorner.lat() - mapSouthWestCorner.lat();
+				Marker marker1 = Marker.create();
+				marker1.setPosition(mapSouthWestCorner);
+				Marker marker2 = Marker.create();
+				marker2.setPosition(mapNorthEastCorner);
+				Marker marker3 = Marker.create();
+				LatLng marker3Cor = LatLng.create(mapSouthWestCorner.lat() + mapHeightDegree, mapSouthWestCorner.lng());
+				marker3.setPosition(marker3Cor);
+				Marker marker4 = Marker.create();
+				LatLng marker4Cor = LatLng.create(mapNorthEastCorner.lat() - mapHeightDegree, mapNorthEastCorner.lng());
+				marker4.setPosition(marker4Cor);
+				marker1.setMap(map);
+				marker2.setMap(map);
+				marker3.setMap(map);
+				marker4.setMap(map);
+//				System.out.println(mapWidthDegree);
+//				System.out.println(mapHeightDegree);
+				int mapWidth = mapPanel.getOffsetWidth();
+				int mapHeight = mapPanel.getOffsetHeight();
+				int mapTop = mapPanel.getAbsoluteTop();
+				int mapLeft = mapPanel.getAbsoluteLeft();
+				pp1.setPopupPosition(mapLeft, mapTop);
+				pp2.setPopupPosition(mapLeft, mapTop + mapHeight);
+				pp3.setPopupPosition(mapLeft + mapWidth, mapTop);
+				pp4.setPopupPosition(mapLeft + mapWidth, mapTop + mapHeight);
+//				pp1.show();
+//				pp2.show();
+//				pp3.show();
+//				pp4.show();
+//				LatLng markerPosition = marker.getPosition();
+//				Double markerXRatio = (markerPosition.lng() - mapSouthWestCorner.lng())/mapWidthDegree; 
+//				Double markerYRatio = (mapNorthEastCorner.lat() - markerPosition.lat())/mapHeightDegree;
+//				int markerX = markerXRatio.intValue()*mapWidth + mapPanel.getAbsoluteLeft();
+//				int markerY = markerYRatio.intValue()*mapHeight + mapPanel.getAbsoluteTop();
+//				pp.setPopupPosition(markerX, markerY);
+				//pp.setPopupPosition(map.getBounds().getSouthWest(). + mapPanel.getAbsoluteLeft(), markerY.intValue() + mapPanel.getAbsoluteTop())
+//				pp.show();	
+			}});
 	    marker.addClickListener(new Marker.ClickHandler() {
 		      @Override
 		      public void handle(MouseEvent event) {
