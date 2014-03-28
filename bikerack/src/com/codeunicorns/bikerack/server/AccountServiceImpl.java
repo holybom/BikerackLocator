@@ -155,17 +155,29 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 //		}
 //		if (user == null || i >= users.size()) return new Boolean(false);
 //		user.setFavorites(favorites);
-		System.out.println("id: " + id + ", Length2Save: " + favorites.length);
+		//System.out.println("id: " + id + ", Length2Save: " + favorites.length);
+		Rack[] favoritesInStore = new Rack[favorites.length];
+		User user;
+		boolean hasError = false;
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
-			User user = pm.getObjectById(User.class, id);
-			System.out.println("User id decrypted to username: " + user.getUsername());
-			user.setFavorites(clientRacksToServerRacks(favorites));
+			user = pm.getObjectById(User.class, id);
+			//System.out.println("User id decrypted to username: " + user.getUsername());
+			for (int i = 0; i < favorites.length; i++) {
+				Query q = pm.newQuery(Rack.class);
+				q.setFilter("id == idParam");
+				q.declareParameters("String idParam");
+				List<Rack> racks = (List<Rack>) q.execute();
+				if (racks.size() > 1) {System.out.println("Error: Duplicate id's: " + racks.get(0).getId()); hasError = true;}
+				else if (racks.size() < 1) {System.out.println("Error: Non-existent Rack with id: " + favorites[i].getId()); hasError = true;}
+				else favoritesInStore[i] = racks.get(0);	
+			}
+			user.setFavorites(favoritesInStore);
 		}
 		finally {
 			pm.close();
 		}
-		return new Boolean(true);
+		return new Boolean(hasError);
 	}
 
 	Rack[] clientRacksToServerRacks(
@@ -175,9 +187,9 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		for (int i = 0; i < favorites.length; i++) {
 			com.codeunicorns.bikerack.client.Rack rack = favorites[i];
 			racks[i] = new Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(), 
-					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng());
+					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng(), rack.getId());
 		}
-		System.out.println("Convert client to server racks: " + racks.length + " racks.");
+		//System.out.println("Convert client to server racks: " + racks.length + " racks.");
 		return racks;
 	}
 	
@@ -189,9 +201,9 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		for (int i = 0; i < favorites.length; i++) {
 			Rack rack = favorites[i];
 			racks[i] = new com.codeunicorns.bikerack.client.Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(), 
-					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng());
+					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng(), rack.getId());
 		}
-		System.out.println("Convert server to client racks: " + racks.length + " racks.");
+		//System.out.println("Convert server to client racks: " + racks.length + " racks.");
 		return racks;
 	}
 }

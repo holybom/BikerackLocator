@@ -548,7 +548,7 @@ public class Bikerack implements EntryPoint {
 			}
 			@Override
 			public void onSuccess(Boolean result) {
-				if (!result) Window.alert("Cannot save, please try again");
+				if (!result) Window.alert("Could not save all of your favorites, please try again");
 			}});
 	}
 }

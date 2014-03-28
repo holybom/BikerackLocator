@@ -374,13 +374,13 @@ public class UserPanel extends LayoutPanel {
 
 	public void addRackFavorite(Rack rack) {
 		favorites.add(rack);
-		System.out.println("Add rack, new length: " + favorites.size());
+		//System.out.println("Add rack, new length: " + favorites.size());
 		rebuildFavoriteTable(favorites);
 	}
 
 	public void removeRackFavorite(Rack rack) {
 		favorites.remove(rack);
-		System.out.println("Remove rack, new length: " + favorites.size());
+		//System.out.println("Remove rack, new length: " + favorites.size());
 		rebuildFavoriteTable(favorites);
 	}
 

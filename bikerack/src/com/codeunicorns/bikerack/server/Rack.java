@@ -32,6 +32,8 @@ public class Rack implements Serializable {
 	private double lat;
 	@Persistent
 	private double lng;
+	@Persistent
+	private String id;
 	
 	public Rack() {};
 	
@@ -40,7 +42,7 @@ public class Rack implements Serializable {
     }
     
 	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
-			String bIA, int numRacks, double lat, double lng) {
+			String bIA, int numRacks, double lat, double lng, String id) {
 		this.streetNum = streetNum;
 		this.streetName = streetName;
 		this.streetSide = streetSide;
@@ -49,6 +51,7 @@ public class Rack implements Serializable {
 		this.numRacks = numRacks;
 		this.lat = lat;
 		this.lng = lng;
+		this.id = id;
 	}
 
 //	public String getName() {
@@ -58,6 +61,10 @@ public class Rack implements Serializable {
 //	public String setName(String name) {
 //		return this.name;
 //	}
+
+	public String getId() {
+		return id;
+	}
 
 	public double getLat() {
 		return lat;

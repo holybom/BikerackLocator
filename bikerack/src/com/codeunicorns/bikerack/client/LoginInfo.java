@@ -19,10 +19,10 @@ public class LoginInfo implements Serializable {
 	private int type;
 	private String facebookId;
 	private Rack[] favorites;
-	private Long id;
+	private Long userId;
 	
 	public Long getId() {
-		return id;
+		return userId;
 	}
 
 	public LoginInfo() {
@@ -45,7 +45,7 @@ public class LoginInfo implements Serializable {
 		this.type = type;
 		this.facebookId = facebookId;
 		this.favorites = favorites;
-		this.id = id;
+		this.userId = id;
 	}
 
 	public Rack[] getFavorites() {

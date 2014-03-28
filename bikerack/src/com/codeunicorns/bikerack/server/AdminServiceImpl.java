@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 
 import javax.jdo.JDOHelper;
@@ -152,8 +153,9 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	}
 
 	private void createRack(final String[] rack) {
+	  String id = new Date().toString();
 	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
-			  				rack[5], Integer.parseInt(rack[6]), 9999, 9999);
+			  				rack[5], Integer.parseInt(rack[6]), 9999, 9999, id);
 	  racks.add(clientRack);
 
 	}
