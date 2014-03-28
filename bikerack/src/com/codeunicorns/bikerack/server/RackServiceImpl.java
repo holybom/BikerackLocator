@@ -6,7 +6,7 @@ import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
-import com.codeunicorns.bikerack.client.Rack;
+
 import com.codeunicorns.bikerack.client.RackService;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -21,10 +21,11 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 	private static boolean bypassPersistence = false;
 
 	@SuppressWarnings("unchecked")
-	public Rack[] getRacks() {
+	public com.codeunicorns.bikerack.client.Rack[] getRacks() {
+		AccountServiceImpl asi = new AccountServiceImpl();
 		if (bypassPersistence) {
 			bypassPersistence = false;
-			return racks;
+			return asi.serverRacksToClientRacks(racks);
 		}
 		// Wipe data on load for testing
 		//deleteAllRacks();
@@ -45,7 +46,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		}
 		//System.out.println("Get: Number of Racks: " + racks.length);
 		
-		return racks;
+		return asi.serverRacksToClientRacks(racks);
 	}
 	
 	public String[] getTableView() {

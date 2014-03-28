@@ -1,7 +1,10 @@
 package com.codeunicorns.bikerack.client.ui;
 
+import java.util.ArrayList;
+
 import com.codeunicorns.bikerack.client.Bikerack;
 import com.codeunicorns.bikerack.client.ui.MyClickEvent;
+import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -9,12 +12,14 @@ import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LayoutPanel;
 import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.PushButton;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -32,6 +37,7 @@ public class UserPanel extends LayoutPanel {
 	private TabLayoutPanel accountAccessPanel = new TabLayoutPanel(20, Unit.PX);
 	private TabLayoutPanel accountInfoPanel = new TabLayoutPanel(20, Unit.PX);
 	private VerticalPanel profilePanel = new VerticalPanel();
+	private ScrollPanel favoritesTablePanel = new ScrollPanel();
 	private VerticalPanel favoritePanel = new VerticalPanel();
 	private VerticalPanel loginPanel = new VerticalPanel();
 	private VerticalPanel registerPanel = new VerticalPanel();
@@ -70,14 +76,10 @@ public class UserPanel extends LayoutPanel {
 	private PasswordTextBox passwordTextbox = new PasswordTextBox();
 	private PasswordTextBox passwordTextbox2 = new PasswordTextBox();
 	private PasswordTextBox confirmPasswordTextbox = new PasswordTextBox();
-//	private Widget fbLoginButton = new HTML(
-//			"<div class='fb-login-button' data-max-rows='1'" 
-//			+ "data-size='medium' data-show-faces='false'" 
-//			+ "data-auto-logout-link='true'></div>");
-	
-	//Widget fbLoginButton2;
 	private UIController uiController;
-	
+	private FlexTable favoritesTable = new FlexTable();
+	private ArrayList<Rack> favorites = new ArrayList<Rack>();
+	private PushButton saveFavoritesButton = new PushButton("Save");	
 	public static UserPanel getInstance(UIController uiController) {
 		if (panelInstance == null) panelInstance = new UserPanel(uiController);
 		return panelInstance;
@@ -290,9 +292,12 @@ public class UserPanel extends LayoutPanel {
 	 */
 	private void loadUserInfoPanel() {
 		//fbLoginButton2 = new HTML(this.fbLoginButton.getElement().getInnerHTML());
-		// TODO Implement profile panel and favorite panel for the logged in user
 		// Just add the labels for now 
 		favoritePanel.add(favoritePanelLabel);
+		buildFavoritesTable();
+		favoritesTablePanel.add(favoritesTable);
+		favoritePanel.add(favoritesTablePanel);
+		favoritePanel.add(saveFavoritesButton);
 		profilePanel.add(profilePanelLabel);
 		profilePanel.add(logoutButton);
 		//profilePanel.add(fbLoginButton);
@@ -300,6 +305,47 @@ public class UserPanel extends LayoutPanel {
 		// Put everything together
 		accountInfoPanel.add(favoritePanel);
 		accountInfoPanel.add(profilePanel);
+		
+		saveFavoritesButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				uiController.saveFavorites(favorites);
+			}
+		});
+	}
+
+	void buildFavoritesTable() {
+			favoritesTable.setStyleName("table");
+			favoritesTable.getRowFormatter().setStyleName(0, "tableHeader");
+			favoritesTable.setText(0, 0, "St number");
+			favoritesTable.setText(0, 1, "St Name");
+			favoritesTable.setText(0, 2, "St Side");
+			favoritesTable.setText(0, 3, "Skytrain");
+			favoritesTable.setText(0, 4, "BIA");
+			favoritesTable.setText(0, 5, "# of racks");
+			favoritesTable.addStyleName("table");
+			favoritesTable.getRowFormatter().addStyleName(0, "tableHeader");
+	}
+	
+	void rebuildFavoriteTable(ArrayList<Rack> favorites) {
+		int row = 1;
+		if (favorites == null || favorites.size() == 0 || favorites.get(0) == null) return;
+		this.favorites = favorites;
+		for (Rack rack : favorites) {
+			favoritesTable.setText(row, 0, Integer.toString(rack.getStreetNum()));
+			favoritesTable.setText(row, 1, rack.getStreetName());
+			favoritesTable.setText(row, 2, rack.getStreetSide());
+			favoritesTable.setText(row, 3, rack.getSkytrain());
+			favoritesTable.setText(row, 4, rack.getbIA());
+			favoritesTable.setText(row, 5, Integer.toString(rack.getNumRacks()));
+			favoritesTable.getRowFormatter().setStyleName(row, "tableContents");
+			row++;
+		}
+		for (int i = favoritesTable.getRowCount()-1; i >= row; i--) {
+			favoritesTable.removeRow(i);
+		}
+		favoritesTable.setText(row,0, "Total");
+		favoritesTable.setText(row,1, Integer.toString(favorites.size()));
+		favoritesTable.getRowFormatter().setStyleName(row, "tableContents");	
 	}
 
 	TabLayoutPanel getAccountAccessPanel() {
@@ -324,6 +370,22 @@ public class UserPanel extends LayoutPanel {
 	
 	VerticalPanel getLoginPanel() {
 		return loginPanel;
+	}
+
+	public void addRackFavorite(Rack rack) {
+		favorites.add(rack);
+		System.out.println("Add rack, new length: " + favorites.size());
+		rebuildFavoriteTable(favorites);
+	}
+
+	public void removeRackFavorite(Rack rack) {
+		favorites.remove(rack);
+		System.out.println("Remove rack, new length: " + favorites.size());
+		rebuildFavoriteTable(favorites);
+	}
+
+	FlexTable getFavoritesTable() {
+		return favoritesTable;
 	}
 	
 }

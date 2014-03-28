@@ -17,7 +17,6 @@ import javax.jdo.PersistenceManagerFactory;
 import com.google.gwt.core.client.JsArray;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.codeunicorns.bikerack.client.AdminService;
-import com.codeunicorns.bikerack.client.Rack;
 import com.google.maps.gwt.client.Geocoder;
 import com.google.maps.gwt.client.Geocoder.Callback;
 import com.google.maps.gwt.client.GeocoderRequest;
@@ -185,8 +184,9 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	}
 
 	@Override
-	public Boolean setRacks(Rack[] racks) {
+	public Boolean setRacks(com.codeunicorns.bikerack.client.Rack[] racks) {
+		AccountServiceImpl asi = new AccountServiceImpl();		
 		RackServiceImpl rsi = new RackServiceImpl();
-		return rsi.setRacks(racks);
+		return rsi.setRacks(asi.clientRacksToServerRacks(racks));
 	}
 }

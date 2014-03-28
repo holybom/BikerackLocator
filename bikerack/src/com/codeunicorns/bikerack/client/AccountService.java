@@ -1,5 +1,7 @@
 package com.codeunicorns.bikerack.client;
 
+import com.codeunicorns.bikerack.client.Rack;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -10,4 +12,5 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 public interface AccountService extends RemoteService {
 	LoginInfo login(String[] request);
 	LoginInfo register(String[] request);
+	Boolean saveFavoriteRacks(Long id, Rack[] favorites);
 }

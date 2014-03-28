@@ -1,5 +1,7 @@
 package com.codeunicorns.bikerack.client.ui;
 
+import java.util.ArrayList;
+
 import com.codeunicorns.bikerack.client.Bikerack;
 import com.codeunicorns.bikerack.client.LoginInfo;
 import com.codeunicorns.bikerack.client.Rack;
@@ -17,6 +19,7 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.maps.gwt.client.Marker;
 
 public class UIController {
 	
@@ -111,7 +114,7 @@ public class UIController {
 			statusPanel.getLoggedInLabelPanel().setVisible(true);
 			userPanel.setWidgetVisible(userPanel.getAccountAccessPanel(), false);
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), true);
-//			userPanel.getFavoritePanel().add(userPanel.getFbButton());
+//			userPanel.getLoginPanel().add(userPanel.getFbButton());
 //			userPanel.getFavoritePanel().add(userPanel.getLogoutButton());
 //			if (loginInfo.isFacebookUser()) {
 //				//userPanel.getFavoritePanel().add(userPanel.getFbButton());
@@ -130,6 +133,8 @@ public class UIController {
 			statusPanel.getLoggedInLabelPanel().setVisible(false);
 			userPanel.setWidgetVisible(userPanel.getAccountAccessPanel(), true);
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), false);
+			userPanel.getFavoritesTable().removeAllRows();
+			userPanel.buildFavoritesTable();
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
 			if (loginInfo != null && loginInfo.isAdmin()) dataMappingPanel.add(dataMappingPanel.getImportPanel());
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
@@ -152,5 +157,31 @@ public class UIController {
 	
 	public void setURLBox(String result) {
 		dataMappingPanel.setURLTextBox(result);
+	}
+
+	public void addMarkerFavorite(MyMarker marker) {
+		if (!marker.isFavorite()) userPanel.addRackFavorite(marker.getRack());
+	}
+
+	public void removeMarkerFavorite(MyMarker marker) {
+		if (marker.isFavorite()) userPanel.removeRackFavorite(marker.getRack());
+	}
+
+	public void saveFavorites(ArrayList<Rack> favorites) {
+		if (favorites == null) return;
+		Rack[] racks = new Rack[favorites.size()];
+		for (int i = 0; i < favorites.size(); i++) {
+			racks[i] = favorites.get(i);
+		}
+		main.saveFavorites(racks);
+	}
+
+	public void rebuildFavoritesTable(Rack[] favorites) {
+		if (favorites == null) return;
+		ArrayList<Rack> racks = new ArrayList<Rack>();
+		for (Rack rack : favorites) {
+			racks.add(rack);
+		}
+		userPanel.rebuildFavoriteTable(racks);
 	}
 }

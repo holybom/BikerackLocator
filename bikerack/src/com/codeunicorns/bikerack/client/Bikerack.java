@@ -2,6 +2,7 @@ package com.codeunicorns.bikerack.client;
 
 import java.util.ArrayList;
 
+import com.codeunicorns.bikerack.client.Rack;
 import com.codeunicorns.bikerack.shared.FieldVerifier;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -92,10 +93,11 @@ public class Bikerack implements EntryPoint {
 	private boolean triedGetRacks = false;
 	private Geocoder geocoder = Geocoder.create();
 	private int geocodeCount = 0;
-	private LoginInfo loginInfo = new LoginInfo("","","",1);
+	private LoginInfo loginInfo = new LoginInfo("","","",1,null,(long) 0);
 	private Label titleLineLabel = new Label("");
 	private Timer refreshRacks;
 	private int REFRESH_INTERVAL = 120000;
+	private ArrayList<Rack> favorites = new ArrayList<Rack>();
 	
 	/**
 	 * This is the entry point method. Where everything starts.
@@ -191,6 +193,7 @@ public class Bikerack implements EntryPoint {
 			// set cookie
 			Cookies.setCookie("bikeracklocator", loginCookie);
 			loginInfo = result;
+			uiController.rebuildFavoritesTable(loginInfo.getFavorites());
 			uiController.setLoginStatus(loginInfo);
 		}	
 		else if (request.length > 1) Window.alert("Invalid username or password");
@@ -262,7 +265,7 @@ public class Bikerack implements EntryPoint {
 	 * logout process, remove cookie from browser and set client login status to logged-out
 	 */
 	private void logout() {
-		loginInfo = new LoginInfo("","","",1);
+		loginInfo = new LoginInfo("","","",1,null,(long) 0);
 		uiController.setLoginStatus(loginInfo);
 		// remove cookie
 		Cookies.removeCookie("bikeracklocator");
@@ -429,7 +432,6 @@ public class Bikerack implements EntryPoint {
 	 * @param adminService
 	 */
 	private void setTableView() {
-		// TODO: actually implement this
 		adminService.setTableView(null, new AsyncCallback<Boolean>() {
 			public void onFailure(Throwable error) {
 				handleError(error);
@@ -536,6 +538,18 @@ public class Bikerack implements EntryPoint {
 
 	private void handleError(Throwable error) {
 		Window.alert(error.getMessage());
+	}
+
+	public void saveFavorites(Rack[] racks) {
+		accountService.saveFavoriteRacks(loginInfo.getId(), racks, new AsyncCallback<Boolean>() {
+			@Override
+			public void onFailure(Throwable caught) {
+				Window.alert("Connection failed, please try again");
+			}
+			@Override
+			public void onSuccess(Boolean result) {
+				if (!result) Window.alert("Cannot save, please try again");
+			}});
 	}
 }
 

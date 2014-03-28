@@ -1,19 +1,44 @@
-package com.codeunicorns.bikerack.client;
+package com.codeunicorns.bikerack.server;
 
 import java.io.Serializable;
+import java.util.Date;
 
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+
+import com.google.appengine.api.datastore.Key;
+
+@PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Rack implements Serializable {
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
+    private Key key;
+	@Persistent
 	private int streetNum;
+	@Persistent
 	private String streetName;
+	@Persistent
 	private String streetSide;
+	@Persistent
 	private String bIA;
+	@Persistent
 	private String skytrain;
+	@Persistent
 	private int numRacks;
+	@Persistent
 	private double lat;
+	@Persistent
 	private double lng;
 	
 	public Rack() {};
-
+	
+    public void setKey(Key key) {
+        this.key = key;
+    }
+    
 	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
 			String bIA, int numRacks, double lat, double lng) {
 		this.streetNum = streetNum;

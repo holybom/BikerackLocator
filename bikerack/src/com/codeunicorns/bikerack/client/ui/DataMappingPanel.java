@@ -28,10 +28,10 @@ import com.google.maps.gwt.client.LatLng;
 import com.google.maps.gwt.client.MapOptions;
 import com.google.maps.gwt.client.MapTypeId;
 import com.google.maps.gwt.client.Marker;
+//import com.google.maps.gwt.client.Marker;
 import com.google.maps.gwt.client.Marker.RightClickHandler;
 import com.google.maps.gwt.client.MarkerOptions;
 import com.google.maps.gwt.client.MouseEvent;
-import com.google.maps.gwt.client.Point;
 
 /**
  * And finally, this loads the map at the center
@@ -52,7 +52,8 @@ private FlexTable racksTable = new FlexTable();
 private UIController uiController;
 private Rack[] racks;
 private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
-private MenuBar menu = new MenuBar(true);
+private PopupPanel menuPanel = new PopupPanel(true);
+private ContextMenu menuPanelContents = new ContextMenu(menuPanel);
 	
 	public static DataMappingPanel getInstance(UIController uiController) {
 		if (panelInstance == null) panelInstance = new DataMappingPanel(uiController);
@@ -67,6 +68,7 @@ private MenuBar menu = new MenuBar(true);
 		super(20, Unit.PX);
 		this.uiController = uiController;
 		racks = (Rack[]) uiController.dataRequest("racks");
+		menuPanel.add(menuPanelContents);
 		buildMapView();
 		buildTableView();
 		buildImportView();
@@ -87,18 +89,11 @@ private MenuBar menu = new MenuBar(true);
 	    //GoogleMap map = GoogleMap.create(mapPanel.getElement(),mapOptions);
 	    map = GoogleMap.create(mapPanel.getElement(),mapOptions);
 	    this.add(mapPanel);
-//	    // Add markers, TODO: add the bike racks data here as markers
 //	    LatLng[] latLngs = new LatLng[1];
 //	    latLngs[0] = (vancouverCity);
 	    //while (!triedGetRacks) {};
 	    if (racks != null && racks.length != 0 && racks[0].getLat() < 9999 && racks[0].getLng() < 9999)	drawBikeracks(racks);
-	    buildMenuBar();
 	  }
-	
-	private void buildMenuBar() {
-		// TODO Auto-generated method stub
-		
-	}
 
 	/**
 	 * foo
@@ -139,7 +134,6 @@ private MenuBar menu = new MenuBar(true);
 	}
 	
 	private void setImportButtonEvents() {
-		// TODO Auto-generated method stub
 		setURLButton.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -191,23 +185,22 @@ private MenuBar menu = new MenuBar(true);
 		MarkerOptions markerOptions = MarkerOptions.create();
 	    markerOptions.setPosition(latLng);
 	    markerOptions.setMap(map);
-	    final Marker marker = Marker.create(markerOptions);
+	    final MyMarker marker = new MyMarker(markerOptions, rack);
 	    final InfoWindow tooltip = createTooltip(rack, latLng);
 	    if (!tooltips.contains(tooltip)) tooltips.add(tooltip);
-	    marker.addRightClickListener(new RightClickHandler() {
+	    marker.getMarker().addRightClickListener(new RightClickHandler() {
 			@Override
 			public void handle(MouseEvent event) {
 				int[] screenPos = getScreenPosition(marker);
-				PopupPanel pp = new PopupPanel(true);
-				pp.add(new Label("Marker1"));
-				pp.setPopupPosition(screenPos[0], screenPos[1]);
-				pp.show();	
+				menuPanelContents.setLinks(marker, uiController);
+				menuPanel.setPopupPosition(screenPos[0], screenPos[1]);
+				menuPanel.show();	
 			}});
-	    marker.addClickListener(new Marker.ClickHandler() {
+	    marker.getMarker().addClickListener(new Marker.ClickHandler() {
 		      @Override
 		      public void handle(MouseEvent event) {
 		    	  for (InfoWindow tooltip : tooltips) tooltip.close();
-		    	  tooltip.open(map, marker);
+		    	  tooltip.open(map, marker.getMarker());
 		    }
 	    });		
 	}
@@ -297,10 +290,10 @@ private MenuBar menu = new MenuBar(true);
 	 * @param marker the marker to get position of
 	 * @return the conversion result in {x-position, y-position}
 	 */
-	private int[] getScreenPosition(final Marker marker) {
+	private int[] getScreenPosition(MyMarker marker) {
 		int mapWidth = mapPanel.getOffsetWidth();
 		int mapHeight = mapPanel.getOffsetHeight();
-		LatLng markerPosition = marker.getPosition();
+		LatLng markerPosition = marker.getMarker().getPosition();
 		LatLng mapSouthWestCorner = map.getBounds().getSouthWest();
 		LatLng mapNorthEastCorner = map.getBounds().getNorthEast();
 		Double mapWidthDegree = mapNorthEastCorner.lng() - mapSouthWestCorner.lng();

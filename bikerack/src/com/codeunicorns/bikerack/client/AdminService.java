@@ -3,6 +3,7 @@ package com.codeunicorns.bikerack.client;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 

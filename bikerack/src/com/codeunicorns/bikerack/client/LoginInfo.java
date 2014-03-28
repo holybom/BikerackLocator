@@ -5,6 +5,8 @@ import java.io.Serializable;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 
+import com.codeunicorns.bikerack.client.Rack;
+
 /**
  * Object storing user access state of the client
  *
@@ -16,12 +18,19 @@ public class LoginInfo implements Serializable {
 	private String nickName;
 	private int type;
 	private String facebookId;
+	private Rack[] favorites;
+	private Long id;
 	
+	public Long getId() {
+		return id;
+	}
+
 	public LoginInfo() {
 		emailAddress = "";
 		nickName = "";
 		type = 0;
 		facebookId = "";
+		favorites = null;
 	}
 	
 	/**
@@ -30,11 +39,17 @@ public class LoginInfo implements Serializable {
 	 * Type 3: logged in as a normal user (non-facebook, non-admin)
 	 * Type 4: logged in as an admin (non-facebook)
 	 */
-	public LoginInfo(String email, String nickName, String facebookId, int type) {
+	public LoginInfo(String email, String nickName, String facebookId, int type, Rack[] favorites, Long id) {
 		this.emailAddress = email;
 		this.nickName = nickName;
 		this.type = type;
 		this.facebookId = facebookId;
+		this.favorites = favorites;
+		this.id = id;
+	}
+
+	public Rack[] getFavorites() {
+		return favorites;
 	}
 
 	public String getEmailAddress() {
