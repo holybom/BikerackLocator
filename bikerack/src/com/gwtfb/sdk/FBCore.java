@@ -121,7 +121,7 @@ public class FBCore {
 	 * @see http://developers.facebook.com/docs/reference/javascript/FB.init
 	 */
 	public native void init (String appId, boolean status, boolean xfbml) /*-{
-		while ($wnd.FB === undefined || $wnd.FB === null) {}
+		while ($wnd.FB == undefined || $wnd.FB == null) {}
 		$wnd.FB.init({
 			'appId': appId, 
 			'status': status,

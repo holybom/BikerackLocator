@@ -387,5 +387,9 @@ public class UserPanel extends LayoutPanel {
 	FlexTable getFavoritesTable() {
 		return favoritesTable;
 	}
+
+	public PushButton getSaveButton() {
+		return saveFavoritesButton;
+	}
 	
 }

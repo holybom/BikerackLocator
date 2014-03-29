@@ -184,4 +184,9 @@ public class UIController {
 		}
 		userPanel.rebuildFavoriteTable(racks);
 	}
+
+	public void enableMarkerContextMenu(boolean enable) {
+		dataMappingPanel.enableMarkerContextMenu(enable);
+		userPanel.getSaveButton().setEnabled(enable);
+	}
 }

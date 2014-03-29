@@ -111,6 +111,7 @@ public class Bikerack implements EntryPoint {
 		uiController.setLoginStatus(loginInfo);
 		// get loginInfo from cookie or facebook
 		getLoginInfo();
+		uiController.enableMarkerContextMenu(false);
 		// Get bike rack data from server periodically
 		refreshRacks = new Timer() {
 			@Override
@@ -380,12 +381,13 @@ public class Bikerack implements EntryPoint {
 	}
 
 
-	private void finishGeocoding(Timer timer, Rack[] racks) {
+	private void finishGeocoding(Timer timer, final Rack[] racks) {
 		timer.cancel();
 		geoCode = false;
 		this.racks = racks;
 		//Window.alert("Geocoding successful, sending data to server, wait for Markers to be drawn");
 		uiController.drawBikeracks(racks);
+		//uiController.enableMarkerContextMenu(false);
 		if (!loginInfo.isAdmin()) return;
 		adminService.setRacks(racks,new AsyncCallback<Boolean>() {
 			public void onFailure(Throwable error) {
@@ -393,11 +395,13 @@ public class Bikerack implements EntryPoint {
 			}
 
 			public void onSuccess(Boolean result) {	
-				if (!result) {
-					Window.alert("Error sending geocodes to server");
-				}
+				if (!result) Window.alert("Error sending geocodes to server");
 				//testGetRacks();
-				else System.out.println("Geocodes sent to server");
+				else {
+					System.out.println("Geocodes sent to server");
+					uiController.drawBikeracks(racks);
+					uiController.enableMarkerContextMenu(true);
+				}
 			}
 		});
 	}
@@ -475,8 +479,11 @@ public class Bikerack implements EntryPoint {
 						//Window.alert("Bike Racks retrieved");
 							racks = new Rack[racks.length];
 							geocodeServerData(result);
+							return;
+							
 							//Window.alert("Wait for geocoding");
 					}
+					uiController.enableMarkerContextMenu(true);
 					//testDrawMarker();
 				}
 			}

@@ -35,6 +35,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 			if (request.length == 1) {
 				//System.out.println("client requests fb login: " + user.getFacebookId());
 				if (request[0].compareTo(user.getFacebookId()) == 0) {
+					System.out.println("Found user has " + user.getFavorites().length + " favorite racks");
 					loginInfo = new LoginInfo("", user.getNickName(), user.getFacebookId(), 2, serverRacksToClientRacks(rackIdsToRacks(user.getFavorites())), user.getId());
 					break;
 				}
@@ -140,7 +141,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 			pm.refreshAll();
 			pm.close();
 		}
-		LoginInfo loginInfo = new LoginInfo(user.getEmailAddress(), user.getNickName(), user.getFacebookId(), type, serverRacksToClientRacks(rackIdsToRacks(user.getFavorites())), user.getId());
+		LoginInfo loginInfo = new LoginInfo(user.getEmailAddress(), user.getNickName(), user.getFacebookId(), type, null, user.getId());
 		return loginInfo;
 	}
 
@@ -160,10 +161,13 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		User user;
 		boolean noError = true;
 		PersistenceManager pm = PMF.getPersistenceManager();
+		System.out.println("Requested save " + favorites.length + " racks");
 		try {
 			user = pm.getObjectById(User.class, id);
-			user.setFavorites(racksToRackIds(favorites));
+			Long[] ids = racksToRackIds(favorites);
+			user.setFavorites(ids);
 			//(new Date()).to;
+			if (ids.length != favorites.length) noError = false;
 		}
 		finally {
 			pm.close();
@@ -173,66 +177,96 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	
 	com.codeunicorns.bikerack.client.Rack[] serverRacksToClientRacks(
 			Rack[] favorites) {
-		if (favorites == null || favorites.length < 1 || favorites[0] == null) return null;
+		if (favorites == null || (favorites.length >= 1 && favorites[0] == null)) return null;
 		com.codeunicorns.bikerack.client.Rack[] racks = new com.codeunicorns.bikerack.client.Rack[favorites.length];
 		for (int i = 0; i < favorites.length; i++) {
 			Rack rack = favorites[i];
 			racks[i] = new com.codeunicorns.bikerack.client.Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(), 
 					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng(), rack.getId());
 		}
-		//System.out.println("Convert server to client racks: " + racks.length + " racks.");
+		if (racks == null) {System.out.println("Error: racks = null, how?"); return null;}
+		System.out.println("Converted " + racks.length + " server to client racks.");
 		return racks;
 	}
 	
 	Rack[] clientRacksToServerRacks(
 			com.codeunicorns.bikerack.client.Rack[] favorites) {
-		if (favorites == null || favorites.length < 1 || favorites[0] == null) return null;
-		Long[] favoritesId = racksToRackIds(favorites);
-		
+		if (favorites == null || (favorites.length >= 1 && favorites[0] == null)) return null;
+		if (favorites.length < 1) return new Rack[0];
+		Rack[] racks;
+		if (favorites[0].getId() != null) racks = rackIdsToRacks(racksToRackIds(favorites));
 //		for (int i = 0; i < favorites.length; i++) {
 //			com.codeunicorns.bikerack.client.Rack rack = favorites[i];
 //			racks[i] = new Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(), 
 //					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng(), rack.getId());
 //		}
-		
-		//System.out.println("Convert client to server racks: " + racks.length + " racks.");
+		else {
+			System.out.println("Bypassed persistence when converting client to server Racks");
+			racks = new Rack[favorites.length];
+			for (int i = 0; i < favorites.length; i++) {
+			com.codeunicorns.bikerack.client.Rack rack = favorites[i];
+			racks[i] = new Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(),
+					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng());
+			}
+		}
+		if (racks == null) {System.out.println("Error: racks = null, how two?"); return null;}
+		System.out.println("Converted " + racks.length + " client to server racks.");
 		return racks;
 	}
 	
 	private Rack[] rackIdsToRacks(Long[] ids) {
-		if (ids == null || ids.length < 1 || ids[0] == null) return null;
+		if (ids == null || (ids.length >= 1 && ids[0] == null)) return null;
 		//System.out.println("User id decrypted to username: " + user.getUsername());
-		Rack[] racks;
+		if (ids.length < 1) return new Rack[0];
+		Rack[] racks = new Rack[ids.length];
 		PersistenceManager pm = PMF.getPersistenceManager();
+		for (Long id : ids) {
+			System.out.println("Request rack of id: " + id + " from datastore");
+		}
 		try {
-//			for (int i = 0; i < ids.length; i++) {
-//				Query q = pm.newQuery(Rack.class);
-//				q.setFilter("id == idParam");
-//				q.declareParameters("String idParam");
-//				List<Rack> racks = (List<Rack>) q.execute(favorites[i].getId());
-//				if (racks.size() > 1) {System.out.println("Error: Duplicate id's: " + racks.get(0).getId()); noError = false;}
-//				else if (racks.size() < 1) {System.out.println("Error: Non-existent Rack with id: " + favorites[i].getId()); noError = false;}
-//				else favoritesInStore[i] = racks.get(0);	
-//			}
-			racks = (Rack[]) pm.getObjectsById((Object[]) ids);
-			if (racks.length != ids.length) System.out.println("Error: Cannot get all the racks, Need: " + ids.length + ", Got: " + racks.length);
+			int length = ids.length;
+			int i = 0;
+			while (i < length) {
+				System.out.println("pre i = " + i + " and length = " + length);
+				Rack rack = pm.getObjectById(Rack.class, ids[i]);
+				//if (racks.size() > 1) {System.out.println("Error: Duplicate id's: " + racks.get(0).getId()); noError = false;}
+				if (rack == null) {
+					System.out.println("Error: Non-existent Rack with id: " + ids[i]);
+					length--;
+					continue; 
+				}
+				else racks[i] = rack;
+				i++;
+			}
+			System.out.println("post i = " + i + " and length = " + length);
+			//racks = (Rack[]) pm.getObjectsById((Object[]) ids);
+			if (length != ids.length) {
+				System.out.println("Error: Cannot get all the racks, Need: " + ids.length + ", Got: " + length);
+				Rack[] reRacks = new Rack[i+1];
+				while (i > 0) {
+					reRacks[i] = racks[i];
+					i--;
+				}
+				racks = reRacks;
+			}
 		}	
 		finally {
 			pm.close();
 		}
 //		if (user == null) {System.out.println("Error: Can't find user: " + id); return new Boolean(false);}
 //		if (favoritesInStore.length < 1 || favoritesInStore[0] == null) return new Boolean(false);
-		
+		System.out.println("Converted " + racks.length + " ids into Racks");
 		return racks;
 	}
 	
 
 	private Long[] racksToRackIds(com.codeunicorns.bikerack.client.Rack[] favorites) {
-		if (favorites == null || favorites.length < 1 || favorites[0] == null) return null;
+		if (favorites == null || (favorites.length >= 1 && favorites[0] == null)) return null;
 		Long[] ids = new Long[favorites.length];
 		for (int i = 0; i < favorites.length; i++) {
 			ids[i] = favorites[i].getId();
 		}
+		System.out.println("Converted " + ids.length + " racks to Ids");
 		return ids;
 	}
 }

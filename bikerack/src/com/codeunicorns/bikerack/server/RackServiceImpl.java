@@ -25,6 +25,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		AccountServiceImpl asi = new AccountServiceImpl();
 		if (bypassPersistence) {
 			bypassPersistence = false;
+			System.out.println("Bypassed persistence when retrieving racks for sending to client");
 			return asi.serverRacksToClientRacks(racks);
 		}
 		// Wipe data on load for testing

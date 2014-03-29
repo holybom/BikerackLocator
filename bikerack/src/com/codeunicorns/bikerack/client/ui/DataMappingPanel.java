@@ -52,8 +52,8 @@ private FlexTable racksTable = new FlexTable();
 private UIController uiController;
 private Rack[] racks;
 private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
-private PopupPanel menuPanel = new PopupPanel(true);
-private ContextMenu menuPanelContents = new ContextMenu(menuPanel);
+private PopupPanel menuPanel;
+private ContextMenu menuPanelContents;
 	
 	public static DataMappingPanel getInstance(UIController uiController) {
 		if (panelInstance == null) panelInstance = new DataMappingPanel(uiController);
@@ -68,10 +68,16 @@ private ContextMenu menuPanelContents = new ContextMenu(menuPanel);
 		super(20, Unit.PX);
 		this.uiController = uiController;
 		racks = (Rack[]) uiController.dataRequest("racks");
-		menuPanel.add(menuPanelContents);
+		initContextMenu();
 		buildMapView();
 		buildTableView();
 		buildImportView();
+	}
+
+	private void initContextMenu() {
+		menuPanel = new PopupPanel(true);
+		menuPanelContents = new ContextMenu(menuPanel);
+		menuPanel.add(menuPanelContents);
 	}
 
 	/**
@@ -192,6 +198,7 @@ private ContextMenu menuPanelContents = new ContextMenu(menuPanel);
 			@Override
 			public void handle(MouseEvent event) {
 				int[] screenPos = getScreenPosition(marker);
+				if (menuPanelContents == null) return;
 				menuPanelContents.setLinks(marker, uiController);
 				menuPanel.setPopupPosition(screenPos[0], screenPos[1]);
 				menuPanel.show();	
@@ -304,5 +311,11 @@ private ContextMenu menuPanelContents = new ContextMenu(menuPanel);
 		Double markerY = markerYRatio*mapHeight + mapPanel.getAbsoluteTop();
 		int[] result = {markerX.intValue(), markerY.intValue()};
 		return result;
+	}
+
+	public void enableMarkerContextMenu(boolean enable) {
+		if (enable) initContextMenu();
+		else menuPanel = null;
+		
 	}	
 }
