@@ -157,16 +157,12 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 //		if (user == null || i >= users.size()) return new Boolean(false);
 //		user.setFavorites(favorites);
 		//System.out.println("id: " + id + ", Length2Save: " + favorites.length);
-		Long[] favoritesInStore = new Long[favorites.length];
 		User user;
 		boolean noError = true;
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
 			user = pm.getObjectById(User.class, id);
-			for (int i = 0; i < favorites.length; i++) {
-				favoritesInStore[i] = favorites[i].getId();
-			}
-			user.setFavorites(favoritesInStore);
+			user.setFavorites(racksToRackIds(favorites));
 			//(new Date()).to;
 		}
 		finally {
@@ -174,7 +170,20 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		}
 		return new Boolean(noError);
 	}
-
+	
+	com.codeunicorns.bikerack.client.Rack[] serverRacksToClientRacks(
+			Rack[] favorites) {
+		if (favorites == null || favorites.length < 1 || favorites[0] == null) return null;
+		com.codeunicorns.bikerack.client.Rack[] racks = new com.codeunicorns.bikerack.client.Rack[favorites.length];
+		for (int i = 0; i < favorites.length; i++) {
+			Rack rack = favorites[i];
+			racks[i] = new com.codeunicorns.bikerack.client.Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(), 
+					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng(), rack.getId());
+		}
+		//System.out.println("Convert server to client racks: " + racks.length + " racks.");
+		return racks;
+	}
+	
 	Rack[] clientRacksToServerRacks(
 			com.codeunicorns.bikerack.client.Rack[] favorites) {
 		if (favorites == null || favorites.length < 1 || favorites[0] == null) return null;
@@ -187,20 +196,6 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 //		}
 		
 		//System.out.println("Convert client to server racks: " + racks.length + " racks.");
-		return racks;
-	}
-	
-	
-	com.codeunicorns.bikerack.client.Rack[] serverRacksToClientRacks(
-			Rack[] favorites) {
-		if (favorites == null) return null;
-		com.codeunicorns.bikerack.client.Rack[] racks = new com.codeunicorns.bikerack.client.Rack[favorites.length];
-		for (int i = 0; i < favorites.length; i++) {
-			Rack rack = favorites[i];
-			racks[i] = new com.codeunicorns.bikerack.client.Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(), 
-					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng(), rack.getId());
-		}
-		//System.out.println("Convert server to client racks: " + racks.length + " racks.");
 		return racks;
 	}
 	
@@ -233,7 +228,11 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	
 
 	private Long[] racksToRackIds(com.codeunicorns.bikerack.client.Rack[] favorites) {
-		// TODO Auto-generated method stub
-		return null;
+		if (favorites == null || favorites.length < 1 || favorites[0] == null) return null;
+		Long[] ids = new Long[favorites.length];
+		for (int i = 0; i < favorites.length; i++) {
+			ids[i] = favorites[i].getId();
+		}
+		return ids;
 	}
 }
