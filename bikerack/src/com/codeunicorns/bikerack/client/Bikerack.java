@@ -91,7 +91,7 @@ public class Bikerack implements EntryPoint {
 	private boolean geoCode = false;
 	private boolean triedLoggedIn = false;
 	private boolean triedGetRacks = false;
-	private Geocoder geocoder = Geocoder.create();
+	private Geocoder geocoder;
 	private int geocodeCount = 0;
 	private LoginInfo loginInfo = new LoginInfo("","","",1,null,(long) 0);
 	private Label titleLineLabel = new Label("");
@@ -515,6 +515,7 @@ public class Bikerack implements EntryPoint {
 	private void initServices() {
 		accountService = GWT.create(AccountService.class);
 		rackService = GWT.create(RackService.class);
+		geocoder = Geocoder.create();
 		facebookService = new FacebookService(this);
 		adminService = null;
 	}
@@ -541,6 +542,7 @@ public class Bikerack implements EntryPoint {
 	}
 
 	public void saveFavorites(Rack[] racks) {
+		if (racks == null || racks[0] == null) return;
 		accountService.saveFavoriteRacks(loginInfo.getId(), racks, new AsyncCallback<Boolean>() {
 			@Override
 			public void onFailure(Throwable caught) {

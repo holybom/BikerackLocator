@@ -30,7 +30,7 @@ public class User {
 	@Persistent
 	private boolean isFacebook;
 	@Persistent
-	private Rack[] favorites;
+	private Long[] favorites;
 	@Persistent
 	private Date createDate;
 	
@@ -58,7 +58,7 @@ public class User {
 		return isFacebook;
 	}
 
-	public User(String emailAddress, String nickName, String userName, String password, boolean isAdmin, String facebookId, boolean isFacebook, Rack[] favorites) {
+	public User(String emailAddress, String nickName, String userName, String password, boolean isAdmin, String facebookId, boolean isFacebook, Long[] favorites) {
 		this();
 		this.emailAddress = emailAddress;
 		this.nickName = nickName;
@@ -71,11 +71,11 @@ public class User {
 	}
 
 	
-	public Rack[] getFavorites() {
+	public Long[] getFavorites() {
 		return favorites;
 	}
 
-	public void setFavorites(Rack[] favorites) {
+	public void setFavorites(Long[] favorites) {
 		this.favorites = favorites;
 	}
 

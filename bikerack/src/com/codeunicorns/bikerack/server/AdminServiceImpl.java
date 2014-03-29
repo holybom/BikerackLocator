@@ -153,9 +153,8 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	}
 
 	private void createRack(final String[] rack) {
-	  String id = new Date().toString();
 	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
-			  				rack[5], Integer.parseInt(rack[6]), 9999, 9999, id);
+			  				rack[5], Integer.parseInt(rack[6]), 9999, 9999);
 	  racks.add(clientRack);
 
 	}

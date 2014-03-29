@@ -15,7 +15,7 @@ import com.google.appengine.api.datastore.Key;
 public class Rack implements Serializable {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-    private Key key;
+    private Long id;
 	@Persistent
 	private int streetNum;
 	@Persistent
@@ -32,17 +32,15 @@ public class Rack implements Serializable {
 	private double lat;
 	@Persistent
 	private double lng;
-	@Persistent
-	private String id;
 	
 	public Rack() {};
 	
-    public void setKey(Key key) {
-        this.key = key;
+    public Long getId() {
+        return id;
     }
     
 	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
-			String bIA, int numRacks, double lat, double lng, String id) {
+			String bIA, int numRacks, double lat, double lng) {
 		this.streetNum = streetNum;
 		this.streetName = streetName;
 		this.streetSide = streetSide;
@@ -51,7 +49,6 @@ public class Rack implements Serializable {
 		this.numRacks = numRacks;
 		this.lat = lat;
 		this.lng = lng;
-		this.id = id;
 	}
 
 //	public String getName() {
@@ -61,10 +58,6 @@ public class Rack implements Serializable {
 //	public String setName(String name) {
 //		return this.name;
 //	}
-
-	public String getId() {
-		return id;
-	}
 
 	public double getLat() {
 		return lat;

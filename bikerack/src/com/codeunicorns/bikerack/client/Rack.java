@@ -11,12 +11,12 @@ public class Rack implements Serializable {
 	private int numRacks;
 	private double lat;
 	private double lng;
-	private String id;
+	private Long id;
 	
 	public Rack() {};
 
 	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
-			String bIA, int numRacks, double lat, double lng, String id) {
+			String bIA, int numRacks, double lat, double lng, Long id) {
 		this.streetNum = streetNum;
 		this.streetName = streetName;
 		this.streetSide = streetSide;
@@ -36,7 +36,7 @@ public class Rack implements Serializable {
 //		return this.name;
 //	}
 
-	public String getId() {
+	public Long getId() {
 		return id;
 	}
 

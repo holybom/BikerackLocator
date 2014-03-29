@@ -41,7 +41,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		}
 		Rack[] racks = new Rack[results.size()];
 		for (int i = 0; i < racks.length; i++) {
-			//System.out.println("get: " + results.get(i).getStreetNum() + " " + results.get(i).getStreetName());
+			System.out.println("get: " + results.get(i).getStreetNum() + " " + results.get(i).getStreetName() + " " + results.get(i).getId());
 			racks[i] = results.get(i);
 		}
 		//System.out.println("Get: Number of Racks: " + racks.length);

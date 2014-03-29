@@ -1,8 +1,8 @@
-<!-- Indices written at Fri, 28 Mar 2014 01:08:11 PDT -->
+<!-- Indices written at Fri, 28 Mar 2014 17:53:45 PDT -->
 
 <datastore-indexes>
 
-    <!-- Used 1 time in query history -->
+    <!-- Used 3 times in query history -->
     <datastore-index kind="Rack" ancestor="false" source="auto">
         <property name="streetName" direction="asc"/>
         <property name="streetNum" direction="asc"/>
