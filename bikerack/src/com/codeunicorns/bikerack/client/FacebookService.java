@@ -25,9 +25,18 @@ public class FacebookService {
 	
 	public FacebookService(Bikerack main) {
 		this.main = main;
-		String APPID = "1483880728501371";
+		final String APPID = "1483880728501371";
 		fbCore = GWT.create(FBCore.class);
 		fbEvent = GWT.create(FBEvent.class);
+		Timer fbInitTimer = new Timer() {
+			@Override
+			public void run() {
+				fbInit(APPID);
+			}};
+		fbInitTimer.schedule(5000);
+	}
+
+	private void fbInit(String APPID) {
 		fbCore.init(APPID, status, xfbml);
 		fbEvent.subscribe("auth.statusChange",fbStatusCallback);
 //		fbEvent.subscribe("auth.login", fbStatusCallback);

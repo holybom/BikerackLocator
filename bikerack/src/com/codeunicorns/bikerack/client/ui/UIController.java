@@ -207,4 +207,8 @@ public class UIController {
 	public void setRackList(Rack[] racks) {
 		rackPanel.setRackList(racks);
 	}
+
+	public void setMarkerFocus(Long markerId) {
+		dataMappingPanel.setMarkerFocus(markerId);
+	}
 }

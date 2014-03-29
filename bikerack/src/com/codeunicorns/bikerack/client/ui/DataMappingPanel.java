@@ -365,5 +365,15 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 			marker.getMarker().setMap((GoogleMap) null);
 		}
 		System.out.println("Hide all " + allMarkers.size() + " markers");
+	}
+
+	public void setMarkerFocus(Long markerId) {
+		//System.out.println("Request Focus on marker " + markerId);
+		for (MyMarker marker : allMarkers) {
+			//System.out.println("Iterating to marker " + marker.getRack().getId());
+			if (marker.getRack().getId().compareTo(markerId) == 0) {
+				map.setCenter(marker.getMarker().getPosition());
+			}
+		}
 	}	
 }

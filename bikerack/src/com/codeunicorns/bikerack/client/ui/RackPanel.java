@@ -58,7 +58,9 @@ public class RackPanel extends VerticalPanel {
 	      public void onSelectionChange(SelectionChangeEvent event) {
 	        String selected = selectionModel.getSelectedObject();
 	        if (selected != null) {
-	          Window.alert("You selected: " + selected);
+	          String rackIdRaw = selected.split(",")[1];
+	          String rackId = rackIdRaw.substring(5);
+	          uiController.setMarkerFocus(Long.parseLong(rackId));
 	        }
 	      }
 	    });		
@@ -100,7 +102,7 @@ public class RackPanel extends VerticalPanel {
 		for (int i = 0; i < rackList.length; i++) {
 			Rack rack = rackList[i];
 			rackInfoList[i] = rack.getStreetNum() + " " + rack.getStreetName()
-					+ ", \n id " + rack.getId();
+					+ ", " + "\n" + "id " + rack.getId();
 		}
 		List<String> list = Arrays.asList(rackInfoList);
 		dataProvider.setList(list);
