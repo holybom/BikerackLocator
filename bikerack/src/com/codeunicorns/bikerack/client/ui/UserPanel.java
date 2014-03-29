@@ -391,5 +391,12 @@ public class UserPanel extends LayoutPanel {
 	public PushButton getSaveButton() {
 		return saveFavoritesButton;
 	}
-	
+
+	Rack[] getFavoriteRacks() {
+		Rack[] racks = new Rack[favorites.size()];
+		for (int i = 0; i < favorites.size(); i++) {
+			racks[i] = favorites.get(i);
+		}
+		return racks;
+	}	
 }

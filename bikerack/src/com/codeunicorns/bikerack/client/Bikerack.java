@@ -195,6 +195,7 @@ public class Bikerack implements EntryPoint {
 			Cookies.setCookie("bikeracklocator", loginCookie);
 			loginInfo = result;
 			uiController.rebuildFavoritesTable(loginInfo.getFavorites());
+			uiController.showFavoriteMarkers();
 			uiController.setLoginStatus(loginInfo);
 		}	
 		else if (request.length > 1) Window.alert("Invalid username or password");
@@ -387,6 +388,7 @@ public class Bikerack implements EntryPoint {
 		this.racks = racks;
 		//Window.alert("Geocoding successful, sending data to server, wait for Markers to be drawn");
 		uiController.drawBikeracks(racks);
+		uiController.setRackList(racks);
 		//uiController.enableMarkerContextMenu(false);
 		if (!loginInfo.isAdmin()) return;
 		adminService.setRacks(racks,new AsyncCallback<Boolean>() {
@@ -399,7 +401,7 @@ public class Bikerack implements EntryPoint {
 				//testGetRacks();
 				else {
 					System.out.println("Geocodes sent to server");
-					uiController.drawBikeracks(racks);
+//					uiController.drawBikeracks(racks);
 					uiController.enableMarkerContextMenu(true);
 				}
 			}
@@ -473,8 +475,11 @@ public class Bikerack implements EntryPoint {
 					System.out.println("Client: GetRacks returns: " + result.length);
 					if (racks != null && racks.length > result.length) return;
 					racks = result;
-					uiController.rebuildTableView(racks);	
-					if (racks.length != 0 && racks[0].getLat() < 9999 && racks[0].getLng() < 9999) uiController.drawBikeracks(racks);
+					uiController.rebuildTableView(racks);
+					if (racks.length != 0 && racks[0].getLat() < 9999 && racks[0].getLng() < 9999) {
+						uiController.drawBikeracks(racks);
+						uiController.setRackList(racks);
+					}
 					if (loginInfo != null && loginInfo.isAdmin() && geoCode == true) { 
 						//Window.alert("Bike Racks retrieved");
 							racks = new Rack[racks.length];

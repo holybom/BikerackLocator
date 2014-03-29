@@ -54,6 +54,9 @@ private Rack[] racks;
 private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
 private PopupPanel menuPanel;
 private ContextMenu menuPanelContents;
+private ArrayList<MyMarker> allMarkers = new ArrayList<MyMarker>();
+private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
+
 	
 	public static DataMappingPanel getInstance(UIController uiController) {
 		if (panelInstance == null) panelInstance = new DataMappingPanel(uiController);
@@ -209,7 +212,8 @@ private ContextMenu menuPanelContents;
 		    	  for (InfoWindow tooltip : tooltips) tooltip.close();
 		    	  tooltip.open(map, marker.getMarker());
 		    }
-	    });		
+	    });
+	    allMarkers.add(marker);
 	}
 
 	private InfoWindow createTooltip(Rack rack, LatLng latlng) {
@@ -245,6 +249,8 @@ private ContextMenu menuPanelContents;
 	void drawBikeracks(Rack[] racks) {
 		if (racks == null) return;
 		this.racks = racks;
+		allMarkers = new ArrayList<MyMarker>();
+		System.out.println("Panel racks Length = " + this.racks.length);
 		for (Rack rack : racks) {
 			setRackMarker(rack, LatLng.create(rack.getLat(), rack.getLng()));
 		}
@@ -317,5 +323,47 @@ private ContextMenu menuPanelContents;
 		if (enable) initContextMenu();
 		else menuPanel = null;
 		
+	}
+
+	public void showFavoriteMarkers(Rack[] favorites) {
+		Rack[] allRacks = racks;
+		ArrayList<MyMarker> allMarkers = this.allMarkers;
+		hideAllMarkers();
+		System.out.println("Pre favorites: " + this.favoritesMarkers.size());
+		System.out.println("Request showing favorites: " + favorites.length);
+		System.out.println("Pre all markers: " + this.allMarkers.size());
+		drawBikeracks(favorites);
+		for (MyMarker marker : this.allMarkers) {
+			marker.setFavorite(true);
+		}
+		System.out.println("Post all markers: " + this.allMarkers.size());
+		favoritesMarkers = this.allMarkers;
+		System.out.println("Post favorite markers: " + favoritesMarkers.size());
+		racks = allRacks;
+		this.allMarkers = allMarkers;
+		System.out.println("Post all markers after restoring: " + this.allMarkers.size());
+		//System.out.println("Post show favorite racks lenght = " + racks.length);
+	}
+	
+	public void hideFavoriteMarkers() {
+		for (MyMarker marker : favoritesMarkers) {
+			marker.getMarker().setMap((GoogleMap) null);
+		}
+	}
+
+	public void showAllMarkers() {
+		hideFavoriteMarkers();
+		for (MyMarker marker: allMarkers) {
+			marker.getMarker().setMap(map);
+		}
+		System.out.println("Show all " + allMarkers.size() + " markers");
+	}
+
+	public void hideAllMarkers() {
+		hideFavoriteMarkers();
+		for (MyMarker marker: allMarkers) {
+			marker.getMarker().setMap((GoogleMap) null);
+		}
+		System.out.println("Hide all " + allMarkers.size() + " markers");
 	}	
 }

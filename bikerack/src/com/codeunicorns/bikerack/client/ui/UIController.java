@@ -58,7 +58,7 @@ public class UIController {
 		fbPanel = FacebookPanel.getInstance();
 		mainPanel.addSouth(fbPanel, 150);
 		// load pane with list of bike racks and search results on left side
-		rackPanel = RackPanel.getInstance();
+		rackPanel = RackPanel.getInstance(this);
 		mainPanel.addWest(rackPanel, 250);
 		// load user login/register form, user profile, favorites and maybe logout button on the right side
 		userPanel = UserPanel.getInstance(this);
@@ -114,6 +114,7 @@ public class UIController {
 			statusPanel.getLoggedInLabelPanel().setVisible(true);
 			userPanel.setWidgetVisible(userPanel.getAccountAccessPanel(), false);
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), true);
+			rackPanel.getShowFavoritesButton().setVisible(true);
 //			userPanel.getLoginPanel().add(userPanel.getFbButton());
 //			userPanel.getFavoritePanel().add(userPanel.getLogoutButton());
 //			if (loginInfo.isFacebookUser()) {
@@ -135,6 +136,7 @@ public class UIController {
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), false);
 			userPanel.getFavoritesTable().removeAllRows();
 			userPanel.buildFavoritesTable();
+			rackPanel.getShowFavoritesButton().setVisible(false);
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
 			if (loginInfo != null && loginInfo.isAdmin()) dataMappingPanel.add(dataMappingPanel.getImportPanel());
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
@@ -188,5 +190,21 @@ public class UIController {
 	public void enableMarkerContextMenu(boolean enable) {
 		dataMappingPanel.enableMarkerContextMenu(enable);
 		userPanel.getSaveButton().setEnabled(enable);
+	}
+
+	public void hideAllMarkers() {
+		dataMappingPanel.hideAllMarkers();
+	}
+
+	public void showAllMarkers() {
+		dataMappingPanel.showAllMarkers();
+	}
+
+	public void showFavoriteMarkers() {
+		dataMappingPanel.showFavoriteMarkers(userPanel.getFavoriteRacks());
+	}
+
+	public void setRackList(Rack[] racks) {
+		rackPanel.setRackList(racks);
 	}
 }

@@ -2,6 +2,7 @@ package com.codeunicorns.bikerack.client.ui;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -10,6 +11,7 @@ import com.google.maps.gwt.client.GoogleMap;
 
 public class ContextMenu extends VerticalPanel {
 	MyMarker marker;
+	Label name = new Label();
 	GoogleMap map = null;
 	PopupPanel parentMenuPanel;
 	UIController uiController;
@@ -25,6 +27,7 @@ public class ContextMenu extends VerticalPanel {
 	public ContextMenu(PopupPanel menuPanel) {
 		super();
 		this.parentMenuPanel = menuPanel;
+		this.add(name);
 		this.add(addFavoriteButton);
 		this.add(deleteFavoriteButton);
 		this.add(removeFromMapButton);
@@ -67,6 +70,7 @@ public class ContextMenu extends VerticalPanel {
 	public void setLinks(MyMarker marker, UIController uiController) {
 		this.marker = marker;
 		this.uiController = uiController;
+		name.setText(marker.getRack().getStreetNum() + " " + marker.getRack().getStreetName());
 		this.add(addFavoriteButton);
 		this.add(deleteFavoriteButton);
 		if (marker.isFavorite()) this.remove(addFavoriteButton);

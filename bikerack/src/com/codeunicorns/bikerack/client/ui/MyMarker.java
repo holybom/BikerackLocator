@@ -1,6 +1,7 @@
 package com.codeunicorns.bikerack.client.ui;
 
 import com.codeunicorns.bikerack.client.Rack;
+import com.google.gwt.user.client.ui.Label;
 import com.google.maps.gwt.client.Marker;
 import com.google.maps.gwt.client.MarkerOptions;
 
