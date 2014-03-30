@@ -26,11 +26,11 @@ public class FacebookService {
 	public FacebookService(Bikerack main) {
 		this.main = main;
 		final String APPID = "1483880728501371";
-		fbCore = GWT.create(FBCore.class);
-		fbEvent = GWT.create(FBEvent.class);
 		Timer fbInitTimer = new Timer() {
 			@Override
 			public void run() {
+				fbCore = GWT.create(FBCore.class);
+				fbEvent = GWT.create(FBEvent.class);
 				fbInit(APPID);
 			}};
 		fbInitTimer.schedule(5000);

@@ -115,7 +115,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		User user;
 		int type;
 		if (request.length == 2) {
-			System.out.println("client request fb register");
+			//System.out.println("client request fb register");
 			String facebookId = request[0];
 			if (checkDuplicate(facebookId, "facebookid")) return null;
 			user = new User("",request[1],"","",false, facebookId, true, null);
@@ -161,7 +161,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		User user;
 		boolean noError = true;
 		PersistenceManager pm = PMF.getPersistenceManager();
-		System.out.println("Requested save " + favorites.length + " racks");
+		//System.out.println("Requested save " + favorites.length + " racks");
 		try {
 			user = pm.getObjectById(User.class, id);
 			Long[] ids = racksToRackIds(favorites);
@@ -184,8 +184,8 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 			racks[i] = new com.codeunicorns.bikerack.client.Rack(rack.getStreetNum(), rack.getStreetName(), rack.getStreetSide(), 
 					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng(), rack.getId());
 		}
-		if (racks == null) {System.out.println("Error: racks = null, how?"); return null;}
-		System.out.println("Converted " + racks.length + " server to client racks.");
+		//if (racks == null) {System.out.println("Error: racks = null, how?"); return null;}
+		//System.out.println("Converted " + racks.length + " server to client racks.");
 		return racks;
 	}
 	
@@ -201,7 +201,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 //					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng(), rack.getId());
 //		}
 		else {
-			System.out.println("Bypassed persistence when converting client to server Racks");
+			//System.out.println("Bypassed persistence when converting client to server Racks");
 			racks = new Rack[favorites.length];
 			for (int i = 0; i < favorites.length; i++) {
 			com.codeunicorns.bikerack.client.Rack rack = favorites[i];
@@ -209,8 +209,8 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 					rack.getSkytrain(), rack.getbIA(), rack.getNumRacks(), rack.getLat(), rack.getLng());
 			}
 		}
-		if (racks == null) {System.out.println("Error: racks = null, how two?"); return null;}
-		System.out.println("Converted " + racks.length + " client to server racks.");
+		//if (racks == null) {System.out.println("Error: racks = null, how two?"); return null;}
+		//System.out.println("Converted " + racks.length + " client to server racks.");
 		return racks;
 	}
 	
@@ -220,14 +220,14 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		if (ids.length < 1) return new Rack[0];
 		Rack[] racks = new Rack[ids.length];
 		PersistenceManager pm = PMF.getPersistenceManager();
-		for (Long id : ids) {
-			System.out.println("Request rack of id: " + id + " from datastore");
-		}
+	//	for (Long id : ids) {
+			//System.out.println("Request rack of id: " + id + " from datastore");
+	//	}
 		try {
 			int length = ids.length;
 			int i = 0;
 			while (i < length) {
-				System.out.println("pre i = " + i + " and length = " + length);
+				//System.out.println("pre i = " + i + " and length = " + length);
 				Rack rack = pm.getObjectById(Rack.class, ids[i]);
 				//if (racks.size() > 1) {System.out.println("Error: Duplicate id's: " + racks.get(0).getId()); noError = false;}
 				if (rack == null) {
@@ -238,7 +238,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 				else racks[i] = rack;
 				i++;
 			}
-			System.out.println("post i = " + i + " and length = " + length);
+			//System.out.println("post i = " + i + " and length = " + length);
 			//racks = (Rack[]) pm.getObjectsById((Object[]) ids);
 			if (length != ids.length) {
 				System.out.println("Error: Cannot get all the racks, Need: " + ids.length + ", Got: " + length);
@@ -255,7 +255,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		}
 //		if (user == null) {System.out.println("Error: Can't find user: " + id); return new Boolean(false);}
 //		if (favoritesInStore.length < 1 || favoritesInStore[0] == null) return new Boolean(false);
-		System.out.println("Converted " + racks.length + " ids into Racks");
+		//System.out.println("Converted " + racks.length + " ids into Racks");
 		return racks;
 	}
 	
@@ -266,7 +266,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		for (int i = 0; i < favorites.length; i++) {
 			ids[i] = favorites[i].getId();
 		}
-		System.out.println("Converted " + ids.length + " racks to Ids");
+		//System.out.println("Converted " + ids.length + " racks to Ids");
 		return ids;
 	}
 }

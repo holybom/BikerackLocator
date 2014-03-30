@@ -47,6 +47,7 @@ public class ContextMenu extends VerticalPanel {
 				if (marker.isFavorite()) {
 				uiController.removeMarkerFavorite(marker);
 				marker.setFavorite(false);
+				//removeFromMapButton.fireEvent(event);
 				}
 				parentMenuPanel.hide();
 			}

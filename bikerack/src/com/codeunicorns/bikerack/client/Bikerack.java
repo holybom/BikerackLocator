@@ -96,7 +96,7 @@ public class Bikerack implements EntryPoint {
 	private LoginInfo loginInfo = new LoginInfo("","","",1,null,(long) 0);
 	private Label titleLineLabel = new Label("");
 	private Timer refreshRacks;
-	private int REFRESH_INTERVAL = 120000;
+	private int REFRESH_INTERVAL = 300000;
 	private ArrayList<Rack> favorites = new ArrayList<Rack>();
 	
 	/**
@@ -472,7 +472,7 @@ public class Bikerack implements EntryPoint {
 					//Window.alert("No data found or error getting bike racks data from server");
 				}
 				else {
-					System.out.println("Client: GetRacks returns: " + result.length);
+					//System.out.println("Client: GetRacks returns: " + result.length);
 					if (racks != null && racks.length > result.length) return;
 					racks = result;
 					uiController.rebuildTableView(racks);
@@ -554,7 +554,7 @@ public class Bikerack implements EntryPoint {
 	}
 
 	public void saveFavorites(Rack[] racks) {
-		if (racks == null || racks[0] == null) return;
+		if (racks == null || (racks.length > 0 && racks[0] == null)) return;
 		accountService.saveFavoriteRacks(loginInfo.getId(), racks, new AsyncCallback<Boolean>() {
 			@Override
 			public void onFailure(Throwable caught) {

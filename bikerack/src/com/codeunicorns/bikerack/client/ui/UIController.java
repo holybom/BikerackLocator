@@ -134,8 +134,8 @@ public class UIController {
 			statusPanel.getLoggedInLabelPanel().setVisible(false);
 			userPanel.setWidgetVisible(userPanel.getAccountAccessPanel(), true);
 			userPanel.setWidgetVisible(userPanel.getAccountInfoPanel(), false);
-			userPanel.getFavoritesTable().removeAllRows();
-			userPanel.buildFavoritesTable();
+			userPanel.removeAllRows();
+			//userPanel.buildFavoritesTable();
 			rackPanel.getShowFavoritesButton().setVisible(false);
 			dataMappingPanel.remove(dataMappingPanel.getImportPanel());
 			if (loginInfo != null && loginInfo.isAdmin()) dataMappingPanel.add(dataMappingPanel.getImportPanel());

@@ -1,16 +1,21 @@
 package com.codeunicorns.bikerack.client.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.codeunicorns.bikerack.client.Bikerack;
 import com.codeunicorns.bikerack.client.ui.MyClickEvent;
 import com.codeunicorns.bikerack.client.Rack;
+import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
+import com.google.gwt.user.cellview.client.CellList;
+import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
@@ -24,6 +29,9 @@ import com.google.gwt.user.client.ui.TabLayoutPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SelectionChangeEvent;
+import com.google.gwt.view.client.SingleSelectionModel;
 
 /**
  * Everything about the user including login form, user profile, favorites, etc.
@@ -77,9 +85,13 @@ public class UserPanel extends LayoutPanel {
 	private PasswordTextBox passwordTextbox2 = new PasswordTextBox();
 	private PasswordTextBox confirmPasswordTextbox = new PasswordTextBox();
 	private UIController uiController;
-	private FlexTable favoritesTable = new FlexTable();
+	//private FlexTable favoritesTable = new FlexTable();
 	private ArrayList<Rack> favorites = new ArrayList<Rack>();
-	private PushButton saveFavoritesButton = new PushButton("Save");	
+	private PushButton saveFavoritesButton = new PushButton("Save");
+	CellList<String> favoritesTable = new CellList<String>(new TextCell());
+	final ListDataProvider<String> favoritesProvider = new ListDataProvider<String>();
+	
+	
 	public static UserPanel getInstance(UIController uiController) {
 		if (panelInstance == null) panelInstance = new UserPanel(uiController);
 		return panelInstance;
@@ -295,7 +307,6 @@ public class UserPanel extends LayoutPanel {
 		// Just add the labels for now 
 		favoritePanel.add(favoritePanelLabel);
 		buildFavoritesTable();
-		favoritesTablePanel.add(favoritesTable);
 		favoritePanel.add(favoritesTablePanel);
 		favoritePanel.add(saveFavoritesButton);
 		profilePanel.add(profilePanelLabel);
@@ -314,40 +325,65 @@ public class UserPanel extends LayoutPanel {
 	}
 
 	void buildFavoritesTable() {
-			favoritesTable.setStyleName("table");
-			favoritesTable.getRowFormatter().setStyleName(0, "tableHeader");
-			favoritesTable.setText(0, 0, "St number");
-			favoritesTable.setText(0, 1, "St Name");
-			favoritesTable.setText(0, 2, "St Side");
-			favoritesTable.setText(0, 3, "Skytrain");
-			favoritesTable.setText(0, 4, "BIA");
-			favoritesTable.setText(0, 5, "# of racks");
-			favoritesTable.addStyleName("table");
-			favoritesTable.getRowFormatter().addStyleName(0, "tableHeader");
+//			favoritesTable.setStyleName("table");
+//			favoritesTable.getRowFormatter().setStyleName(0, "tableHeader");
+//			favoritesTable.setText(0, 0, "St number");
+//			favoritesTable.setText(0, 1, "St Name");
+//			favoritesTable.setText(0, 2, "St Side");
+//			favoritesTable.setText(0, 3, "Skytrain");
+//			favoritesTable.setText(0, 4, "BIA");
+//			favoritesTable.setText(0, 5, "# of racks");
+//			favoritesTable.addStyleName("table");
+//			favoritesTable.getRowFormatter().addStyleName(0, "tableHeader");
+		favoritesProvider.addDataDisplay(favoritesTable);		
+		favoritesTable.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.ENABLED);
+
+	    // Add a selection model to handle user selection.
+	    final SingleSelectionModel<String> selectionModel = new SingleSelectionModel<String>();
+	    favoritesTable.setSelectionModel(selectionModel);
+	    selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
+	      public void onSelectionChange(SelectionChangeEvent event) {
+	        String selected = selectionModel.getSelectedObject();
+	        if (selected != null) {
+	          String rackIdRaw = selected.split(",")[1];
+	          String rackId = rackIdRaw.substring(5);
+	          uiController.setMarkerFocus(Long.parseLong(rackId));
+	        }
+	      }
+	    });
+	
+	    favoritesTablePanel.add(favoritesTable);
 	}
 	
 	void rebuildFavoriteTable(ArrayList<Rack> favorites) {
-		int row = 1;
+//		int row = 1;
 		if (favorites == null || favorites.size() == 0 || favorites.get(0) == null) return;
 		this.favorites = favorites;
-		for (Rack rack : favorites) {
-			favoritesTable.setText(row, 0, Integer.toString(rack.getStreetNum()));
-			favoritesTable.setText(row, 1, rack.getStreetName());
-			favoritesTable.setText(row, 2, rack.getStreetSide());
-			favoritesTable.setText(row, 3, rack.getSkytrain());
-			favoritesTable.setText(row, 4, rack.getbIA());
-			favoritesTable.setText(row, 5, Integer.toString(rack.getNumRacks()));
-			favoritesTable.getRowFormatter().setStyleName(row, "tableContents");
-			row++;
+//		for (Rack rack : favorites) {
+//			favoritesTable.setText(row, 0, Integer.toString(rack.getStreetNum()));
+//			favoritesTable.setText(row, 1, rack.getStreetName());
+//			favoritesTable.setText(row, 2, rack.getStreetSide());
+//			favoritesTable.setText(row, 3, rack.getSkytrain());
+//			favoritesTable.setText(row, 4, rack.getbIA());
+//			favoritesTable.setText(row, 5, Integer.toString(rack.getNumRacks()));
+//			favoritesTable.getRowFormatter().setStyleName(row, "tableContents");
+//			row++;
+//		}
+//		for (int i = favoritesTable.getRowCount()-1; i >= row; i--) {
+//			favoritesTable.removeRow(i);
+//		}
+//		favoritesTable.setText(row,0, "Total");
+//		favoritesTable.setText(row,1, Integer.toString(favorites.size()));
+//		favoritesTable.getRowFormatter().setStyleName(row, "tableContents");	
+		ArrayList<String> rackInfoList = new ArrayList<String>();
+		for (Rack rack: favorites) {
+			rackInfoList.add(rack.getStreetNum() + " " + rack.getStreetName()
+					+ ", " + "\n" + "id " + rack.getId());
 		}
-		for (int i = favoritesTable.getRowCount()-1; i >= row; i--) {
-			favoritesTable.removeRow(i);
-		}
-		favoritesTable.setText(row,0, "Total");
-		favoritesTable.setText(row,1, Integer.toString(favorites.size()));
-		favoritesTable.getRowFormatter().setStyleName(row, "tableContents");	
+		//List<String> list = Arrays.asList(rackInfoList);
+		favoritesProvider.setList(rackInfoList);
 	}
-
+	
 	TabLayoutPanel getAccountAccessPanel() {
 		return accountAccessPanel;
 	}
@@ -375,17 +411,27 @@ public class UserPanel extends LayoutPanel {
 	public void addRackFavorite(Rack rack) {
 		favorites.add(rack);
 		//System.out.println("Add rack, new length: " + favorites.size());
-		rebuildFavoriteTable(favorites);
+		//rebuildFavoriteTable(favorites);
+		String rackInfo = rack.getStreetNum() + " " + rack.getStreetName()
+				+ ", " + "\n" + "id " + rack.getId();
+		if (!favoritesProvider.getList().contains(rackInfo)) favoritesProvider.getList().add(rackInfo);
 	}
 
 	public void removeRackFavorite(Rack rack) {
 		favorites.remove(rack);
 		//System.out.println("Remove rack, new length: " + favorites.size());
-		rebuildFavoriteTable(favorites);
+		//rebuildFavoriteTable(favorites);
+		favoritesProvider.getList().remove(rack.getStreetNum() + " " + rack.getStreetName()
+				+ ", " + "\n" + "id " + rack.getId());
 	}
 
-	FlexTable getFavoritesTable() {
-		return favoritesTable;
+//	CellList getFavoritesTable() {
+//		
+//		return favoritesTable.;
+//	}
+	
+	public void removeAllRows() {
+		favoritesProvider.setList(new ArrayList<String>());
 	}
 
 	public PushButton getSaveButton() {

@@ -138,12 +138,12 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 					createRack(rack);
 				} catch (NumberFormatException e) {
 					// TODO: handle exception
-					System.out.println("Parsing failed at this line.");
+					System.out.println("Parsing finished.");
 				}
 				// TODO: delete this line after done, just for testing
 				if (rowCount > 5) break;
 			}
-			System.out.println("Parse: Number of Racks: " + Integer.toString(rowCount - 1));
+			//System.out.println("Parse: Number of Racks: " + Integer.toString(rowCount - 1));
 			br.close();
 		} catch (IOException e) {
 			e.printStackTrace();

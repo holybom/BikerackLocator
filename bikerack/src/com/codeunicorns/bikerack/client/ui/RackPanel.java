@@ -14,6 +14,7 @@ import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSe
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PushButton;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.ListDataProvider;
@@ -31,6 +32,7 @@ public class RackPanel extends VerticalPanel {
 	private PushButton showFavoritesButton = new PushButton("Show favorite racks");
 	private boolean areMarkersVisible = true;
 	private UIController uiController;
+	private ScrollPanel rackPanel = new ScrollPanel();
 	CellList<String> cellList = new CellList<String>(new TextCell());
 	final ListDataProvider<String> dataProvider = new ListDataProvider<String>();
 //	private static final List<String> DAYS = Arrays.asList("Sunday", "Monday",
@@ -45,28 +47,11 @@ public class RackPanel extends VerticalPanel {
 	private RackPanel(final UIController uiController) {
 		// TODO Implement rack list display, only label for now
 		this.uiController = uiController;
-		this.add(rackPanelLabel);
 		this.add(toggleMarkersButton);
 		this.add(showFavoritesButton);
-		dataProvider.addDataDisplay(cellList);		
-		cellList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.ENABLED);
-
-	    // Add a selection model to handle user selection.
-	    final SingleSelectionModel<String> selectionModel = new SingleSelectionModel<String>();
-	    cellList.setSelectionModel(selectionModel);
-	    selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-	      public void onSelectionChange(SelectionChangeEvent event) {
-	        String selected = selectionModel.getSelectedObject();
-	        if (selected != null) {
-	          String rackIdRaw = selected.split(",")[1];
-	          String rackId = rackIdRaw.substring(5);
-	          uiController.setMarkerFocus(Long.parseLong(rackId));
-	        }
-	      }
-	    });		
-		
-		
-		this.add(cellList);
+		this.add(rackPanelLabel);
+		buildRackPanel();				
+		this.add(rackPanel);
 		
 		toggleMarkersButton.addClickHandler(new ClickHandler() {
 
@@ -91,6 +76,27 @@ public class RackPanel extends VerticalPanel {
 			}
 			
 		});
+	}
+
+	private void buildRackPanel() {
+		dataProvider.addDataDisplay(cellList);		
+		cellList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.ENABLED);
+
+	    // Add a selection model to handle user selection.
+	    final SingleSelectionModel<String> selectionModel = new SingleSelectionModel<String>();
+	    cellList.setSelectionModel(selectionModel);
+	    selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
+	      public void onSelectionChange(SelectionChangeEvent event) {
+	        String selected = selectionModel.getSelectedObject();
+	        if (selected != null) {
+	          String rackIdRaw = selected.split(",")[1];
+	          String rackId = rackIdRaw.substring(5);
+	          uiController.setMarkerFocus(Long.parseLong(rackId));
+	        }
+	      }
+	    });
+	    
+	    rackPanel.add(cellList);
 	}
 
 	PushButton getShowFavoritesButton() {

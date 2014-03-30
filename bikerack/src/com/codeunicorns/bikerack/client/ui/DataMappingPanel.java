@@ -250,7 +250,7 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 		if (racks == null) return;
 		this.racks = racks;
 		allMarkers = new ArrayList<MyMarker>();
-		System.out.println("Panel racks Length = " + this.racks.length);
+	//	System.out.println("Panel racks Length = " + this.racks.length);
 		for (Rack rack : racks) {
 			setRackMarker(rack, LatLng.create(rack.getLat(), rack.getLng()));
 		}
@@ -329,19 +329,19 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 		Rack[] allRacks = racks;
 		ArrayList<MyMarker> allMarkers = this.allMarkers;
 		hideAllMarkers();
-		System.out.println("Pre favorites: " + this.favoritesMarkers.size());
-		System.out.println("Request showing favorites: " + favorites.length);
-		System.out.println("Pre all markers: " + this.allMarkers.size());
+		//System.out.println("Pre favorites: " + this.favoritesMarkers.size());
+		//System.out.println("Request showing favorites: " + favorites.length);
+		//System.out.println("Pre all markers: " + this.allMarkers.size());
 		drawBikeracks(favorites);
 		for (MyMarker marker : this.allMarkers) {
 			marker.setFavorite(true);
 		}
-		System.out.println("Post all markers: " + this.allMarkers.size());
+		//System.out.println("Post all markers: " + this.allMarkers.size());
 		favoritesMarkers = this.allMarkers;
-		System.out.println("Post favorite markers: " + favoritesMarkers.size());
+		//System.out.println("Post favorite markers: " + favoritesMarkers.size());
 		racks = allRacks;
 		this.allMarkers = allMarkers;
-		System.out.println("Post all markers after restoring: " + this.allMarkers.size());
+		//System.out.println("Post all markers after restoring: " + this.allMarkers.size());
 		//System.out.println("Post show favorite racks lenght = " + racks.length);
 	}
 	
@@ -356,7 +356,7 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 		for (MyMarker marker: allMarkers) {
 			marker.getMarker().setMap(map);
 		}
-		System.out.println("Show all " + allMarkers.size() + " markers");
+	//	System.out.println("Show all " + allMarkers.size() + " markers");
 	}
 
 	public void hideAllMarkers() {
@@ -364,7 +364,7 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 		for (MyMarker marker: allMarkers) {
 			marker.getMarker().setMap((GoogleMap) null);
 		}
-		System.out.println("Hide all " + allMarkers.size() + " markers");
+	//	System.out.println("Hide all " + allMarkers.size() + " markers");
 	}
 
 	public void setMarkerFocus(Long markerId) {

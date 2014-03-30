@@ -25,7 +25,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		AccountServiceImpl asi = new AccountServiceImpl();
 		if (bypassPersistence) {
 			bypassPersistence = false;
-			System.out.println("Bypassed persistence when retrieving racks for sending to client");
+			//System.out.println("Bypassed persistence when retrieving racks for sending to client");
 			return asi.serverRacksToClientRacks(racks);
 		}
 		// Wipe data on load for testing
@@ -42,7 +42,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		}
 		Rack[] racks = new Rack[results.size()];
 		for (int i = 0; i < racks.length; i++) {
-			System.out.println("get: " + results.get(i).getStreetNum() + " " + results.get(i).getStreetName() + " " + results.get(i).getId());
+			//System.out.println("get: " + results.get(i).getStreetNum() + " " + results.get(i).getStreetName() + " " + results.get(i).getId());
 			racks[i] = results.get(i);
 		}
 		//System.out.println("Get: Number of Racks: " + racks.length);
@@ -56,7 +56,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 	
 	public boolean setRacks(Rack[] racks) {
 		if (racks == null) return false;
-		System.out.println("Set: Number of Racks: " + racks.length);
+		//System.out.println("Set: Number of Racks: " + racks.length);
 		RackServiceImpl.racks = racks;
 		if (bypassPersistence) return true;
 		//System.out.println("getBeforeSet");
