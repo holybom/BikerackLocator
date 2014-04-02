@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 
 import javax.jdo.JDOHelper;
@@ -17,7 +18,6 @@ import javax.jdo.PersistenceManagerFactory;
 import com.google.gwt.core.client.JsArray;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.codeunicorns.bikerack.client.AdminService;
-import com.codeunicorns.bikerack.client.Rack;
 import com.google.maps.gwt.client.Geocoder;
 import com.google.maps.gwt.client.Geocoder.Callback;
 import com.google.maps.gwt.client.GeocoderRequest;
@@ -116,13 +116,14 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	private boolean emptyLine(String line) {
 		String[] splitLine = line.split(delimiter);
 		for (String str : splitLine) {
-			if (str != "") return false;
+			if (str.compareTo("") != 0) return false;
 		}
 		return true;
 	}
 
 	public Boolean loadData(String[] params) {
 		// parse data
+		racks = new LinkedList<Rack>();
 		if (br == null) {
 			System.out.println("Error reading from source");
 			return new Boolean(false);
@@ -137,11 +138,12 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 					createRack(rack);
 				} catch (NumberFormatException e) {
 					// TODO: handle exception
-					System.out.println("Parsing failed at this line.");
+					System.out.println("Parsing finished.");
 				}
 				// TODO: delete this line after done, just for testing
-				 if (rowCount > 15) break;
+				if (rowCount > 5) break;
 			}
+			//System.out.println("Parse: Number of Racks: " + Integer.toString(rowCount - 1));
 			br.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -152,7 +154,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 
 	private void createRack(final String[] rack) {
 	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
-			  				rack[5], Integer.parseInt(rack[6]));
+			  				rack[5], Integer.parseInt(rack[6]), 9999, 9999);
 	  racks.add(clientRack);
 
 	}
@@ -173,6 +175,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 			clientRacks[i] = rack;
 			i++;
 		}
+		rsi.setBypassPersistence(true);
 		return new Boolean(rsi.setRacks(clientRacks));
 	}
 
@@ -182,8 +185,9 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	}
 
 	@Override
-	public Boolean setRacks(Rack[] racks) {
+	public Boolean setRacks(com.codeunicorns.bikerack.client.Rack[] racks) {
+		AccountServiceImpl asi = new AccountServiceImpl();		
 		RackServiceImpl rsi = new RackServiceImpl();
-		return rsi.setRacks(racks);
+		return rsi.setRacks(asi.clientRacksToServerRacks(racks));
 	}
 }

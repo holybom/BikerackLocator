@@ -1,5 +1,6 @@
 package com.codeunicorns.bikerack.client;
 
+import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 /**
