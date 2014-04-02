@@ -2,9 +2,6 @@ package com.codeunicorns.bikerack.client;
 
 import java.io.Serializable;
 
-import javax.jdo.annotations.IdentityType;
-import javax.jdo.annotations.PersistenceCapable;
-
 import com.codeunicorns.bikerack.client.Rack;
 
 /**
@@ -13,6 +10,10 @@ import com.codeunicorns.bikerack.client.Rack;
  */
 public class LoginInfo implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 210007090475389207L;
 	//private boolean loggedIn = false;
 	private String emailAddress;
 	private String nickName;
@@ -20,7 +21,16 @@ public class LoginInfo implements Serializable {
 	private String facebookId;
 	private Rack[] favorites;
 	private Long userId;
+	private String message;
 	
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
 	public Long getId() {
 		return userId;
 	}

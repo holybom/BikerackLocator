@@ -3,6 +3,10 @@ package com.codeunicorns.bikerack.client;
 import java.io.Serializable;
 
 public class Rack implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2096054209667042718L;
 	private int streetNum;
 	private String streetName;
 	private String streetSide;

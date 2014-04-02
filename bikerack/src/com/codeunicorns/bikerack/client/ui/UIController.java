@@ -6,20 +6,8 @@ import com.codeunicorns.bikerack.client.Bikerack;
 import com.codeunicorns.bikerack.client.LoginInfo;
 import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.LayoutPanel;
-import com.google.gwt.user.client.ui.PasswordTextBox;
-import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
-import com.google.gwt.user.client.ui.ScrollPanel;
-import com.google.gwt.user.client.ui.TabLayoutPanel;
-import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.maps.gwt.client.Marker;
 
 public class UIController {
 	
@@ -210,5 +198,14 @@ public class UIController {
 
 	public void setMarkerFocus(Long markerId) {
 		dataMappingPanel.setMarkerFocus(markerId);
+	}
+
+	public void setRackHighlighted(MyMarker marker) {
+		rackPanel.setRackHighlighted(marker);
+		userPanel.setRackHighlighted(marker);
+	}
+
+	public void setImportPanelTitleLine(String titleLineLabel) {
+		dataMappingPanel.setImportPanelTitleLine(titleLineLabel);
 	}
 }

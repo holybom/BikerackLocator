@@ -5,17 +5,13 @@ import java.util.List;
 
 import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.cell.client.TextCell;
-import com.google.gwt.dom.client.Style;
-import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.CellList;
 import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.ScrollPanel;
-import com.google.gwt.user.client.ui.TabLayoutPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SelectionChangeEvent;
@@ -35,6 +31,7 @@ public class RackPanel extends VerticalPanel {
 	private ScrollPanel rackPanel = new ScrollPanel();
 	CellList<String> cellList = new CellList<String>(new TextCell());
 	final ListDataProvider<String> dataProvider = new ListDataProvider<String>();
+	SingleSelectionModel<String> selectionModel;
 //	private static final List<String> DAYS = Arrays.asList("Sunday", "Monday",
 //		      "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 
@@ -83,7 +80,7 @@ public class RackPanel extends VerticalPanel {
 		cellList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.ENABLED);
 
 	    // Add a selection model to handle user selection.
-	    final SingleSelectionModel<String> selectionModel = new SingleSelectionModel<String>();
+	    selectionModel = new SingleSelectionModel<String>();
 	    cellList.setSelectionModel(selectionModel);
 	    selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 	      public void onSelectionChange(SelectionChangeEvent event) {
@@ -112,5 +109,12 @@ public class RackPanel extends VerticalPanel {
 		}
 		List<String> list = Arrays.asList(rackInfoList);
 		dataProvider.setList(list);
+	}
+
+	public void setRackHighlighted(MyMarker marker) {
+		Rack rack = marker.getRack();
+		String rackInfo = rack.getStreetNum() + " " + rack.getStreetName()
+				+ ", " + "\n" + "id " + rack.getId();
+		if (!selectionModel.isSelected(rackInfo)) selectionModel.setSelected(rackInfo, true);
 	}
 }

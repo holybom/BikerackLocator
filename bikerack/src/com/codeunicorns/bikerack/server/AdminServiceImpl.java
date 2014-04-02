@@ -1,50 +1,31 @@
 package com.codeunicorns.bikerack.server;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedList;
 
-import javax.jdo.JDOHelper;
-import javax.jdo.PersistenceManagerFactory;
-
-import com.google.gwt.core.client.JsArray;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.codeunicorns.bikerack.client.AdminService;
-import com.google.maps.gwt.client.Geocoder;
-import com.google.maps.gwt.client.Geocoder.Callback;
-import com.google.maps.gwt.client.GeocoderRequest;
-import com.google.maps.gwt.client.GeocoderResult;
-import com.google.maps.gwt.client.GeocoderStatus;
-//import com.google.maps.gwt.client.Geocoder.Callback;
-import com.google.maps.gwt.client.LatLng;
 
+@SuppressWarnings("serial")
 public class AdminServiceImpl extends RemoteServiceServlet implements AdminService {
 	private String host = "http://www.ugrad.cs.ubc.ca/~b4s8/";
 	private int year = 2012;
 	private String name = "BikeRackData.csv"; 
-	private int splitLimit = 8;
 	private String delimiter = ",";
 	private int titleLineNum = 3;
-	private static final PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
+	//private static final PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 	private static URL url;
 	private HttpURLConnection connection;
-	private File file;
-	private FileReader fis;
 	private BufferedReader br;
 	private LinkedList<Rack> racks = new LinkedList<Rack>();
-	private LinkedList<String> params = new LinkedList<String>();
+	//private LinkedList<String> params = new LinkedList<String>();
 	private String[] titleLine;
 	private String line;
-	private Geocoder geocoder;
-	
 	public AdminServiceImpl() {
 		// construct default URL TODO: for testing purpose, so may delete after 
 		try {
@@ -58,7 +39,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	
 	public Boolean setDataURL(String url) {
 		try {
-			this.url = new URL(url);
+			AdminServiceImpl.url = new URL(url);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			return new Boolean(false);
@@ -141,7 +122,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 					System.out.println("Parsing finished.");
 				}
 				// TODO: delete this line after done, just for testing
-				if (rowCount > 5) break;
+				if (rowCount > 19) break;
 			}
 			//System.out.println("Parse: Number of Racks: " + Integer.toString(rowCount - 1));
 			br.close();
@@ -149,8 +130,14 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 			e.printStackTrace();
 			return new Boolean(false);
 		}
+		//notifyUsers();
 		return setRacks();
 	}
+
+//	private void notifyUsers() {
+//		//AccountServiceImpl asi = new AccountServiceImpl();
+//		AccountServiceImpl.setDataChanged(true);
+//	}
 
 	private void createRack(final String[] rack) {
 	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
@@ -189,5 +176,15 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 		AccountServiceImpl asi = new AccountServiceImpl();		
 		RackServiceImpl rsi = new RackServiceImpl();
 		return rsi.setRacks(asi.clientRacksToServerRacks(racks));
+	}
+
+	@Override
+	public Boolean userNotify(String notification) {
+		AccountServiceImpl asi = new AccountServiceImpl();
+		return asi.setNotification(notification);
+//		if (notification == null) return new Boolean(false);
+//		if (notification.compareTo("") != 0) this.notification  = notification;
+//		else this.notification = "";
+//		return new Boolean(true);
 	}
 }

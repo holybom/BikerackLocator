@@ -1,16 +1,10 @@
 package com.codeunicorns.bikerack.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import com.codeunicorns.bikerack.client.LoginInfo;
 import com.codeunicorns.bikerack.client.AccountService;
-import com.google.gwt.core.shared.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import com.sun.xml.internal.ws.developer.UsesJAXBContext;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
@@ -18,9 +12,15 @@ import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
 public class AccountServiceImpl extends RemoteServiceServlet implements AccountService {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5248587620963181400L;
 	private static final PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 	private String adminCode = "abcd0";
-
+	//rivate static boolean dataChanged = false;
+	private static String notification = "";
+	
 	/**
 	 * @param request string contains [username, password] or [facebookId]
 	 */
@@ -35,7 +35,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 			if (request.length == 1) {
 				//System.out.println("client requests fb login: " + user.getFacebookId());
 				if (request[0].compareTo(user.getFacebookId()) == 0) {
-					System.out.println("Found user has " + user.getFavorites().length + " favorite racks");
+					//System.out.println("Found user has " + user.getFavorites().length + " favorite racks");
 					loginInfo = new LoginInfo("", user.getNickName(), user.getFacebookId(), 2, serverRacksToClientRacks(rackIdsToRacks(user.getFavorites())), user.getId());
 					break;
 				}
@@ -47,9 +47,15 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 				break;
 			}
 		}
+		if ((loginInfo.getType() != 1) && (notification.compareTo("") != 0)) loginInfo.setMessage(notification);
 		return loginInfo;
 	}
 
+//	static void setDataChanged(boolean dataChanged) {
+//		AccountServiceImpl.dataChanged = dataChanged;
+//	}
+
+	@SuppressWarnings("unchecked")
 	private List<User> retrieveAllUsers() {
 		List<User> users;
 		PersistenceManager pm = PMF.getPersistenceManager();
@@ -58,8 +64,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		q.setOrdering("createDate descending");
 		users = (List<User>) q.execute();
 		for (int i = 0; i < users.size(); i++) {
-			User user = users.get(i);
-			//System.out.println("Database:" + i + ". " + user.getUsername() + " " + user.getPassword() + user.getId());
+			users.get(i);
 		}
 		}finally {
 			pm.close();
@@ -74,7 +79,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	 */
 	private boolean checkDuplicate(String content, String type) {
 		if (content == null) return true;
-		PersistenceManager pm = PMF.getPersistenceManager();
+		PMF.getPersistenceManager();
 		boolean isDuplicate = false;
 		List<User> users = retrieveAllUsers();
 		if (type.compareTo("username") == 0) {
@@ -96,10 +101,12 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		return isDuplicate;
 	}
 
+	@SuppressWarnings("unused")
 	private void deleteAllUsers() {
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
 			Query q = pm.newQuery(User.class);;
+			@SuppressWarnings("unchecked")
 			List<User> users = (List<User>) q.execute();
 			pm.deletePersistentAll(users);
 		} finally {
@@ -268,5 +275,11 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		}
 		//System.out.println("Converted " + ids.length + " racks to Ids");
 		return ids;
+	}
+
+	public Boolean setNotification(String notification) {
+		if (notification == null) return new Boolean(false);
+		AccountServiceImpl.notification = notification;
+		return new Boolean(true);
 	}
 }

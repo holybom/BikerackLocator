@@ -1,19 +1,19 @@
 package com.codeunicorns.bikerack.server;
 
 import java.io.Serializable;
-import java.util.Date;
-
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
-import com.google.appengine.api.datastore.Key;
-
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Rack implements Serializable {
-    @PrimaryKey
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3159990518234313398L;
+	@PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Long id;
 	@Persistent

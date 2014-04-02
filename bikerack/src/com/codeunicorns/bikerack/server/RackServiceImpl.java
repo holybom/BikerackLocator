@@ -8,7 +8,6 @@ import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
 import com.codeunicorns.bikerack.client.RackService;
-import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 // This class is to communicate with client and send Racks info to it
 public class RackServiceImpl extends RemoteServiceServlet implements RackService {
@@ -67,6 +66,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
 			Query q = pm.newQuery(Rack.class);
+			@SuppressWarnings("unchecked")
 			List<Rack> results = (List<Rack>) q.execute();
 			if (results != null && results.size() != 0) pm.deletePersistentAll(results);
 			while ((f = getRacks().length) < i && f > 0) i = f;

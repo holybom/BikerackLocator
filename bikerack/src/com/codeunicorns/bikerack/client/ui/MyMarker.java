@@ -1,7 +1,6 @@
 package com.codeunicorns.bikerack.client.ui;
 
 import com.codeunicorns.bikerack.client.Rack;
-import com.google.gwt.user.client.ui.Label;
 import com.google.maps.gwt.client.Marker;
 import com.google.maps.gwt.client.MarkerOptions;
 
@@ -9,6 +8,7 @@ public class MyMarker {
 	private boolean isFavorite = false;
 	private Marker marker;
 	private Rack rack;
+	//private Long id;
 	
 	public MyMarker(MarkerOptions markerOpts, Rack rack) {
 		marker = Marker.create(markerOpts);
@@ -35,4 +35,14 @@ public class MyMarker {
 	public void setFavorite(boolean isFavorite) {
 		this.isFavorite = isFavorite;
 	}
+
+//	public Long getId() {
+//		return id;
+//	}
+//
+//	public void setId(Long id) {
+//		this.id = id;
+//	}
+	
+	
 }

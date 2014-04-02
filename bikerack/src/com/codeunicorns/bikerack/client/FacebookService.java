@@ -4,7 +4,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Label;
 import com.gwtfb.sdk.FBCore;
 import com.gwtfb.sdk.FBEvent;
 import com.gwtfb.sdk.FBXfbml;
@@ -17,11 +16,13 @@ public class FacebookService {
 	private boolean status = false;
 	private boolean xfbml = true;	
 	private Timer refreshFacebook;
-	private int FACEBOOK_REFRESH =15000;
+	private int FACEBOOK_REFRESH =5000;
 	private Bikerack main;
 	private boolean isFbLoggedIn = false;
 	private FbStatusCallback fbStatusCallback = new FbStatusCallback();
 	private LoginCallback loginCallback = new LoginCallback();
+	private int loginCheckTries = 3;
+	//private Timer startLoginTimer;
 	
 	public FacebookService(Bikerack main) {
 		this.main = main;
@@ -71,29 +72,21 @@ public class FacebookService {
 		public void onSuccess ( JavaScriptObject response ) {
 			JSOModel jso = response.cast();
 			FBXfbml.parse();
-			//Window.alert("page load status check");
-			//LoginInfo loginInfo = main.getClientLoginInfo();
-			//Window.alert(jso.get("status") + " 2");
 			isFbLoggedIn = false;
 			if (jso.get("status").compareTo("connected") == 0) {
 				fbCore.api ( "/me" , new UserCallback());
 				isFbLoggedIn = true;
+				loginCheckTries = 0;
 			}
 			else if (jso.get("status").compareTo("not_authorized") == 0) {
 				isFbLoggedIn = true;
 			}
-//			else if (main.getClientLoginInfo().isFacebookUser()) {
-//				main.clientRequest("logout", null);
-//				isFbLoggedIn = false;
-//			}
 		}
 	}
 	
 	class FbStatusCallback extends FacebookCallback<JavaScriptObject> {
 		public void onSuccess ( JavaScriptObject response ) {
 			JSOModel jso = response.cast();
-			//Window.alert(jso.get("status"));
-			//LoginInfo loginInfo = main.getClientLoginInfo();
 			boolean newIsFbLoggedIn = false;
 			if (jso.get("status").compareTo("connected") == 0) {
 				newIsFbLoggedIn = true;
@@ -110,10 +103,15 @@ public class FacebookService {
 	}
 	
 	public void checkLogggedOut() {
-		fbCore.getLoginStatus(fbStatusCallback);
+		if (loginCheckTries <= 0) fbCore.getLoginStatus(fbStatusCallback);
+		else {
+			loginCheckTries--;
+			fbCore.getLoginStatus(loginCallback);
+		}
 	}
 
 	public void login() {
+		loginCheckTries = 3;
 		fbCore.login(loginCallback);
 	}
 }

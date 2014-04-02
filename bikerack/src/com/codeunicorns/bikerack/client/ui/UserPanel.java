@@ -1,10 +1,6 @@
 package com.codeunicorns.bikerack.client.ui;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.codeunicorns.bikerack.client.Bikerack;
 import com.codeunicorns.bikerack.client.ui.MyClickEvent;
 import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.cell.client.TextCell;
@@ -17,8 +13,6 @@ import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.cellview.client.CellList;
 import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LayoutPanel;
@@ -90,6 +84,7 @@ public class UserPanel extends LayoutPanel {
 	private PushButton saveFavoritesButton = new PushButton("Save");
 	CellList<String> favoritesTable = new CellList<String>(new TextCell());
 	final ListDataProvider<String> favoritesProvider = new ListDataProvider<String>();
+	SingleSelectionModel<String> selectionModel;
 	
 	
 	public static UserPanel getInstance(UIController uiController) {
@@ -339,7 +334,7 @@ public class UserPanel extends LayoutPanel {
 		favoritesTable.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.ENABLED);
 
 	    // Add a selection model to handle user selection.
-	    final SingleSelectionModel<String> selectionModel = new SingleSelectionModel<String>();
+	    selectionModel = new SingleSelectionModel<String>();
 	    favoritesTable.setSelectionModel(selectionModel);
 	    selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 	      public void onSelectionChange(SelectionChangeEvent event) {
@@ -444,5 +439,13 @@ public class UserPanel extends LayoutPanel {
 			racks[i] = favorites.get(i);
 		}
 		return racks;
+	}
+
+	public void setRackHighlighted(MyMarker marker) {
+		Rack rack = marker.getRack();
+		if (!favorites.contains(rack)) return;
+		String rackInfo = rack.getStreetNum() + " " + rack.getStreetName()
+				+ ", " + "\n" + "id " + rack.getId();
+		if (!selectionModel.isSelected(rackInfo)) selectionModel.setSelected(rackInfo, true);
 	}	
 }

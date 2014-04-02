@@ -1,20 +1,9 @@
 package com.codeunicorns.bikerack.client;
 
-import java.util.ArrayList;
-
 import com.codeunicorns.bikerack.client.Rack;
-import com.codeunicorns.bikerack.shared.FieldVerifier;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyDownEvent;
-import com.google.gwt.event.dom.client.KeyDownHandler;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.codeunicorns.bikerack.client.LoginInfo;
 import com.codeunicorns.bikerack.client.AccountService;
 import com.codeunicorns.bikerack.client.AccountServiceAsync;
@@ -22,48 +11,15 @@ import com.codeunicorns.bikerack.client.ui.UIController;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.FocusPanel;
-import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.LayoutPanel;
-import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.PasswordTextBox;
-import com.google.gwt.user.client.ui.PushButton;
-import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.ScrollPanel;
-import com.google.gwt.user.client.ui.TabLayoutPanel;
-import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.UIObject;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.dom.client.Style.Unit;
 import com.google.maps.gwt.client.Geocoder;
 import com.google.maps.gwt.client.Geocoder.Callback;
 import com.google.maps.gwt.client.GeocoderRequest;
 import com.google.maps.gwt.client.GeocoderResult;
 import com.google.maps.gwt.client.GeocoderStatus;
-import com.google.maps.gwt.client.GoogleMap;
-import com.google.maps.gwt.client.InfoWindow;
-import com.google.maps.gwt.client.InfoWindowOptions;
-import com.google.maps.gwt.client.MapOptions;
 import com.google.maps.gwt.client.LatLng;
-import com.google.maps.gwt.client.MapTypeId;
-import com.google.maps.gwt.client.Marker;
-import com.google.maps.gwt.client.MarkerOptions;
-import com.google.maps.gwt.client.MouseEvent;
-import com.google.maps.gwt.client.Size;
-import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.Cookies;
-import com.gwtfb.sdk.JSOModel;
-import com.gwtfb.sdk.FBCore;
-import com.gwtfb.sdk.FBEvent;
-import com.gwtfb.sdk.FBXfbml;
 
 
 /**
@@ -71,34 +27,19 @@ import com.gwtfb.sdk.FBXfbml;
  */
 public class Bikerack implements EntryPoint {
 	
-	/**
-	 * The message displayed to the user when the server cannot be reached or
-	 * returns an error.
-	 */
-	private static final String SERVER_ERROR = "An error occurred while "
-			+ "attempting to contact the server. Please check your network "
-			+ "connection and try again.";
 	private UIController uiController;
 	private Rack[] racks;
-	private ArrayList<InfoWindow> tooltips = new ArrayList<InfoWindow>();
-	private String dataURL;
 	private AdminServiceAsync adminService;
 	private AccountServiceAsync accountService;
 	private RackServiceAsync rackService;
 	private FacebookService facebookService;
-	private Boolean dataGeocoded = false;
-	private String[] titleLine;
 	private boolean geoCode = false;
-	private boolean triedLoggedIn = false;
-	private boolean triedGetRacks = false;
 	private Geocoder geocoder;
 	private int geocodeCount = 0;
 	private LoginInfo loginInfo = new LoginInfo("","","",1,null,(long) 0);
 	private Label titleLineLabel = new Label("");
 	private Timer refreshRacks;
 	private int REFRESH_INTERVAL = 300000;
-	private ArrayList<Rack> favorites = new ArrayList<Rack>();
-	
 	/**
 	 * This is the entry point method. Where everything starts.
 	 */
@@ -140,8 +81,23 @@ public class Bikerack implements EntryPoint {
 		else if (name.compareTo("settable") == 0) setTableView();
 		else if (name.compareTo("geturl") == 0) getDataURL();
 		else if (name.compareTo("fblogin") == 0) facebookService.login();
+		else if (name.compareTo("notify") == 0) userNotify(request[0]);
 	}
 	
+	private void userNotify(String notification) {
+		adminService.userNotify(notification, new AsyncCallback<Boolean>() {
+
+			@Override
+			public void onFailure(Throwable error) {
+				handleError(error);
+			}
+
+			@Override
+			public void onSuccess(Boolean result) {
+				if (result) Window.alert("Message set");
+			}});
+	}
+
 	/**
 	 * DATA OUT
 	 * This function also acts as a receiver, but for direct data grab from the UI
@@ -162,14 +118,13 @@ public class Bikerack implements EntryPoint {
 	 * to be sent to server for authentication
 	 */
 	private void login(final String[] loginRequest) {
+		if (loginRequest == null || loginRequest.length < 1 || loginRequest[0] == null) return;
 		if (!checkInput(loginRequest)) return;
 		accountService.login(loginRequest, new AsyncCallback<LoginInfo>() {
 			public void onFailure(Throwable error) {
-				triedLoggedIn = true;
 				handleError(error);
 			}
 			public void onSuccess(LoginInfo result) {
-				triedLoggedIn = true;
 				handleLogin(loginRequest, result);
 				}
 		});
@@ -197,6 +152,8 @@ public class Bikerack implements EntryPoint {
 			uiController.rebuildFavoritesTable(loginInfo.getFavorites());
 			uiController.showFavoriteMarkers();
 			uiController.setLoginStatus(loginInfo);
+			String message = result.getMessage();
+			if (message != null && message.compareTo("") != 0) Window.alert(message);
 		}	
 		else if (request.length > 1) Window.alert("Invalid username or password");
 	}
@@ -326,9 +283,10 @@ public class Bikerack implements EntryPoint {
 			public void onSuccess(String[] result) {
 				if (result != null) {
 					//testLoadData(adminService);
-					titleLine = result;
-					titleLineLabel = new Label(result[0] + " " + result[1] + " " + result[2] + " " 
-							+ result[3] + " " + result[4] + " " + result[5]);
+					//titleLine = result;
+					String titleLineLabel = result[0] + " " + result[1] + " " + result[2] + " " 
+							+ result[3] + " " + result[4] + " " + result[5];
+					uiController.setImportPanelTitleLine(titleLineLabel);
 				}
 				//else Window.alert("Dataset format changed, cannot get new dataset");
 					
@@ -457,17 +415,14 @@ public class Bikerack implements EntryPoint {
 	 * For testing getting rack information
 	 */
 	private void getServerRacks() {
-		RackServiceAsync rackService = GWT.create(RackService.class);
 		rackService.getRacks(new AsyncCallback<Rack[]>() {
 			@Override
 			public void onFailure(Throwable caught) {
-				triedGetRacks = true;
 				Window.alert("GetRacks: failure connecting to server");
 			}
 
 			@Override
 			public void onSuccess(Rack[] result) {
-				triedGetRacks = true;
 				if (result == null || result.length == 0) {
 					//Window.alert("No data found or error getting bike racks data from server");
 				}

@@ -14,4 +14,5 @@ public interface AdminServiceAsync {
 	void loadData(String[] params, AsyncCallback<Boolean> callback);
 	void setTableView(String[] params, AsyncCallback<Boolean> callback);
 	void setRacks(Rack[] racks, AsyncCallback<Boolean> asyncCallback);
+	void userNotify(String notification, AsyncCallback<Boolean> asyncCallback);
 }

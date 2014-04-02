@@ -2,25 +2,21 @@ package com.codeunicorns.bikerack.client.ui;
 
 import java.util.ArrayList;
 
-import com.codeunicorns.bikerack.client.Bikerack;
 import com.codeunicorns.bikerack.client.Rack;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.ContextMenuEvent;
-import com.google.gwt.event.dom.client.ContextMenuHandler;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.LayoutPanel;
-import com.google.gwt.user.client.ui.MenuBar;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.maps.gwt.client.GoogleMap;
 import com.google.maps.gwt.client.InfoWindow;
 import com.google.maps.gwt.client.InfoWindowOptions;
@@ -40,13 +36,16 @@ public class DataMappingPanel extends TabLayoutPanel {
 private static DataMappingPanel panelInstance = null;
 private LayoutPanel mapPanel = new LayoutPanel();
 private ScrollPanel tableViewPanel = new ScrollPanel();
-private VerticalPanel importPanel2 = new VerticalPanel();
-private HorizontalPanel importPanel = new HorizontalPanel();
+private VerticalPanel importPanel = new VerticalPanel();
+private HorizontalPanel importPanel2 = new HorizontalPanel();
+private HorizontalPanel notificationPanel = new HorizontalPanel();
 private PushButton setURLButton = new PushButton("Set URL");
 private PushButton importButton = new PushButton("Import");
-private PushButton getTitlesButton = new PushButton("Get Titles");
+//private PushButton getTitlesButton = new PushButton("Get Titles");
+private PushButton notifyButton = new PushButton("Notify Users");
 private PushButton loadButton = new PushButton("Load");
 private TextBox URLTextBox = new TextBox();
+private TextBox userNotification = new TextBox();
 private GoogleMap map;
 private FlexTable racksTable = new FlexTable();
 private UIController uiController;
@@ -56,6 +55,7 @@ private PopupPanel menuPanel;
 private ContextMenu menuPanelContents;
 private ArrayList<MyMarker> allMarkers = new ArrayList<MyMarker>();
 private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
+private Label titleLine = new Label("");
 
 	
 	public static DataMappingPanel getInstance(UIController uiController) {
@@ -127,22 +127,38 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 	 * foo
 	 */
 	private void buildImportView() {
-		importPanel.add(URLTextBox);
-		uiController.clientRequest("geturl", null);
+		userNotification.setText("Message to all users");
+		notificationPanel.add(userNotification);
+		notificationPanel.add(notifyButton);
+		
+		importPanel2.add(URLTextBox);
+		importPanel2.add(setURLButton);
+		importPanel2.add(importButton);
+		//importPanel2.add(getTitlesButton);
+		importPanel2.add(loadButton);
+		
 		//importButton.setEnabled(false);
 		//getTitlesButton.setEnabled(false);
 		loadButton.setEnabled(false);
-		importPanel.add(setURLButton);
-		importPanel.add(importButton);
-		//importPanel.add(getTitlesButton);
-		importPanel.add(loadButton);
-		importPanel2.add(importPanel);
-		importPanel2.add((Widget) uiController.dataRequest("titleline"));
+		uiController.clientRequest("geturl", null);
+				
+		importPanel.add(notificationPanel);
+		importPanel.add(importPanel2);
+		importPanel.add(titleLine);//(Widget) uiController.dataRequest("titleline"));
 		//centralPanel.add(importPanel2);
+		this.add(importPanel);
 		setImportButtonEvents();
 	}
 	
 	private void setImportButtonEvents() {
+		notifyButton.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				String[] request = {userNotification.getText()}; 
+				uiController.clientRequest("notify", request);	
+			}
+		});
 		setURLButton.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -195,6 +211,7 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 	    markerOptions.setPosition(latLng);
 	    markerOptions.setMap(map);
 	    final MyMarker marker = new MyMarker(markerOptions, rack);
+	    //marker.setId(rack.getId());
 	    final InfoWindow tooltip = createTooltip(rack, latLng);
 	    if (!tooltips.contains(tooltip)) tooltips.add(tooltip);
 	    marker.getMarker().addRightClickListener(new RightClickHandler() {
@@ -211,6 +228,7 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 		      public void handle(MouseEvent event) {
 		    	  for (InfoWindow tooltip : tooltips) tooltip.close();
 		    	  tooltip.open(map, marker.getMarker());
+		    	  uiController.setRackHighlighted(marker);
 		    }
 	    });
 	    allMarkers.add(marker);
@@ -294,8 +312,9 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 		URLTextBox.setText(text);
 	}
 
-	HorizontalPanel getImportPanel() {
+	Panel getImportPanel() {
 		return importPanel;
+		//return null;
 	}
 
 	/**
@@ -375,5 +394,9 @@ private ArrayList<MyMarker> favoritesMarkers = new ArrayList<MyMarker>();
 				map.setCenter(marker.getMarker().getPosition());
 			}
 		}
+	}
+
+	public void setImportPanelTitleLine(String titleLineLabel) {
+		titleLine.setText(titleLineLabel);
 	}	
 }

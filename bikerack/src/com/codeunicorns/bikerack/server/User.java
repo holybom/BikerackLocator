@@ -8,8 +8,6 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
-import com.codeunicorns.bikerack.client.LoginInfo;
-
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class User {
 	@PrimaryKey
