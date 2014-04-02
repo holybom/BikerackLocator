@@ -450,7 +450,7 @@ public class UserPanel extends LayoutPanel {
 
 	public void setRackHighlighted(MyMarker marker) {
 		Rack rack = marker.getRack();
-		if (favorites.contains(rack)) return;
+		if (!favorites.contains(rack)) return;
 		String rackInfo = rack.getStreetNum() + " " + rack.getStreetName()
 				+ ", " + "\n" + "id " + rack.getId();
 		if (!selectionModel.isSelected(rackInfo)) selectionModel.setSelected(rackInfo, true);

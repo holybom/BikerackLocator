@@ -37,7 +37,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 			if (request.length == 1) {
 				//System.out.println("client requests fb login: " + user.getFacebookId());
 				if (request[0].compareTo(user.getFacebookId()) == 0) {
-					System.out.println("Found user has " + user.getFavorites().length + " favorite racks");
+					//System.out.println("Found user has " + user.getFavorites().length + " favorite racks");
 					loginInfo = new LoginInfo("", user.getNickName(), user.getFacebookId(), 2, serverRacksToClientRacks(rackIdsToRacks(user.getFavorites())), user.getId());
 					break;
 				}

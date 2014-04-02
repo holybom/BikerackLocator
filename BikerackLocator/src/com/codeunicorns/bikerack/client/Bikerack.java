@@ -177,6 +177,7 @@ public class Bikerack implements EntryPoint {
 	 * to be sent to server for authentication
 	 */
 	private void login(final String[] loginRequest) {
+		if (loginRequest == null || loginRequest.length < 1 || loginRequest[0] == null) return;
 		if (!checkInput(loginRequest)) return;
 		accountService.login(loginRequest, new AsyncCallback<LoginInfo>() {
 			public void onFailure(Throwable error) {
