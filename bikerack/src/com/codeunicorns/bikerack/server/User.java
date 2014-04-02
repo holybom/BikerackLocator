@@ -26,29 +26,61 @@ public class User {
 	@Persistent
 	private boolean isAdmin;
 	@Persistent
-	private Date createDate;   
+	private String facebookId;
+	@Persistent
+	private boolean isFacebook;
+	@Persistent
+	private Long[] favorites;
+	@Persistent
+	private Date createDate;
 	
 	
 	public User() {
 		this.createDate = new Date();
 	}
 	
-	public User(String emailAddress, String nickName, String userName, String password, boolean isAdmin) {
+	
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+
+
+	public String getFacebookId() {
+		return facebookId;
+	}
+
+	public void setFacebookId(String facebookId) {
+		if (!isFacebook) this.facebookId = facebookId;
+	}
+
+	public boolean isFacebook() {
+		return isFacebook;
+	}
+
+	public User(String emailAddress, String nickName, String userName, String password, boolean isAdmin, String facebookId, boolean isFacebook, Long[] favorites) {
 		this();
 		this.emailAddress = emailAddress;
 		this.nickName = nickName;
 		this.userName = userName;
 		this.password = password;
 		this.isAdmin = isAdmin;
+		this.facebookId = facebookId;
+		this.isFacebook = isFacebook;
+		this.favorites = favorites;
 	}
 
 	
-	public Long getId() {
-		return id;
+	public Long[] getFavorites() {
+		return favorites;
 	}
 
-	public Date getCreateDate() {
-		return createDate;
+	public void setFavorites(Long[] favorites) {
+		this.favorites = favorites;
+	}
+
+	public Long getId() {
+		return id;
 	}
 
 	public String getEmailAddress() {

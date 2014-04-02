@@ -11,7 +11,35 @@ public class Rack implements Serializable {
 	private int numRacks;
 	private double lat;
 	private double lng;
+	private Long id;
 	
+	public Rack() {};
+
+	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
+			String bIA, int numRacks, double lat, double lng, Long id) {
+		this.streetNum = streetNum;
+		this.streetName = streetName;
+		this.streetSide = streetSide;
+		this.bIA = bIA;
+		this.skytrain = skytrain;
+		this.numRacks = numRacks;
+		this.lat = lat;
+		this.lng = lng;
+		this.id = id;
+	}
+
+//	public String getName() {
+//		return this.name;
+//	}
+//	
+//	public String setName(String name) {
+//		return this.name;
+//	}
+
+	public Long getId() {
+		return id;
+	}
+
 	public double getLat() {
 		return lat;
 	}
@@ -27,22 +55,7 @@ public class Rack implements Serializable {
 	public void setLng(double lng) {
 		this.lng = lng;
 	}
-
-	public Rack() {
-	}
 	
-	public Rack(int streetNum, String streetName, String streetSide, String skytrain,
-			String bIA, int numRacks) {
-		this.streetNum = streetNum;
-		this.streetName = streetName;
-		this.streetSide = streetSide;
-		this.bIA = bIA;
-		this.skytrain = skytrain;
-		this.numRacks = numRacks;
-		this.lat = 9999;;
-		this.lng = 9999;
-	}
-
 	public String getbIA() {
 		return bIA;
 	}
