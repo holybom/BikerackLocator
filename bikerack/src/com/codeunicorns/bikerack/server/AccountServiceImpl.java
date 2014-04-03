@@ -16,7 +16,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	 * 
 	 */
 	private static final long serialVersionUID = -5248587620963181400L;
-	private static final PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
+	private static PersistenceManagerFactory PMF;
 	private String adminCode = "abcd0";
 	//rivate static boolean dataChanged = false;
 	private static String notification = "";
@@ -58,6 +58,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	@SuppressWarnings("unchecked")
 	private List<User> retrieveAllUsers() {
 		List<User> users;
+		if (PMF == null) JDOHelper.getPersistenceManagerFactory("transactions-optional");
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
 		Query q = pm.newQuery(User.class);
@@ -79,6 +80,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 	 */
 	private boolean checkDuplicate(String content, String type) {
 		if (content == null) return true;
+		if (PMF == null) PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 		PMF.getPersistenceManager();
 		boolean isDuplicate = false;
 		List<User> users = retrieveAllUsers();
@@ -103,6 +105,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 
 	@SuppressWarnings("unused")
 	private void deleteAllUsers() {
+		if (PMF == null) PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
 			Query q = pm.newQuery(User.class);;
@@ -140,6 +143,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 			user = new User(emailAddress, nickName, userName, password, type == 4? true : false, "", false, null);
 		}  
 		else return null;
+		if (PMF == null) PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
 		pm.makePersistent(user);
@@ -167,6 +171,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		//System.out.println("id: " + id + ", Length2Save: " + favorites.length);
 		User user;
 		boolean noError = true;
+		if (PMF == null) PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 		PersistenceManager pm = PMF.getPersistenceManager();
 		//System.out.println("Requested save " + favorites.length + " racks");
 		try {
@@ -226,6 +231,7 @@ public class AccountServiceImpl extends RemoteServiceServlet implements AccountS
 		//System.out.println("User id decrypted to username: " + user.getUsername());
 		if (ids.length < 1) return new Rack[0];
 		Rack[] racks = new Rack[ids.length];
+		if (PMF == null) PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 		PersistenceManager pm = PMF.getPersistenceManager();
 	//	for (Long id : ids) {
 			//System.out.println("Request rack of id: " + id + " from datastore");

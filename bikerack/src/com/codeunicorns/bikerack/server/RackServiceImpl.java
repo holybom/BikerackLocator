@@ -12,13 +12,13 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 // This class is to communicate with client and send Racks info to it
 public class RackServiceImpl extends RemoteServiceServlet implements RackService {
 	private static final long serialVersionUID = 732266412467513628L;
-	private static final PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
+	private static PersistenceManagerFactory PMF;
 	private static PersistenceManager pm;
 	private static Rack[] racks = null;
 	// TODO: have to initialized to something
 	private static String[] params = null;
 	private static boolean bypassPersistence = false;
-
+	
 	@SuppressWarnings("unchecked")
 	public com.codeunicorns.bikerack.client.Rack[] getRacks() {
 		AccountServiceImpl asi = new AccountServiceImpl();
@@ -29,6 +29,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		}
 		// Wipe data on load for testing
 		//deleteAllRacks();
+		if (PMF == null) PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 		pm = PMF.getPersistenceManager();
 		List<Rack> results;
 		try {
@@ -63,6 +64,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 		int i = getRacks().length;
 		int f;
 		//System.out.println("Set: Number of Racks: " + racks.length);
+		if (PMF == null) PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
 		PersistenceManager pm = PMF.getPersistenceManager();
 		try {
 			Query q = pm.newQuery(Rack.class);
@@ -107,7 +109,7 @@ public class RackServiceImpl extends RemoteServiceServlet implements RackService
 //		getRacks();
 //	}
 	
-	void setBypassPersistence(boolean bypassPersistence) {
+	public void setBypassPersistence(boolean bypassPersistence) {
 		RackServiceImpl.bypassPersistence = bypassPersistence;
 	}
 }

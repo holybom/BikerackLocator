@@ -40,6 +40,7 @@ public class Bikerack implements EntryPoint {
 	private Label titleLineLabel = new Label("");
 	private Timer refreshRacks;
 	private int REFRESH_INTERVAL = 300000;
+	private String NUM_DATA_POINTS = "20";
 	/**
 	 * This is the entry point method. Where everything starts.
 	 */
@@ -298,7 +299,8 @@ public class Bikerack implements EntryPoint {
 	 */
 	private void loadData() {
 		refreshRacks.cancel();
-		adminService.loadData(null, new AsyncCallback<Boolean>() {
+		String[] limit = {NUM_DATA_POINTS};
+		adminService.loadData(limit, new AsyncCallback<Boolean>() {
 				public void onFailure(Throwable error) {
 					uiController.importSuccessful(true);
 					handleError(error);

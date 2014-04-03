@@ -27,11 +27,9 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	private String[] titleLine;
 	private String line;
 	public AdminServiceImpl() {
-		// construct default URL TODO: for testing purpose, so may delete after 
 		try {
 			url = new URL(host + year + name);
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		//geocoder = Geocoder.create();
@@ -48,7 +46,6 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	}
 	
 	public Boolean importData() {
-		// TODO: do we implement the parsing here? Datastore?
 		if (url == null) {
 			System.out.println("Error forming connection");
 			return new Boolean(false);
@@ -104,6 +101,13 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 
 	public Boolean loadData(String[] params) {
 		// parse data
+		int limit;
+		try {
+			limit = parseLoadParams(params) - 1;
+		}
+		catch (RuntimeException e) {
+			return new Boolean(false);
+		}
 		racks = new LinkedList<Rack>();
 		if (br == null) {
 			System.out.println("Error reading from source");
@@ -118,11 +122,10 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 				try {
 					createRack(rack);
 				} catch (NumberFormatException e) {
-					// TODO: handle exception
 					System.out.println("Parsing finished.");
 				}
 				// TODO: delete this line after done, just for testing
-				if (rowCount > 19) break;
+				if (rowCount > limit) break;
 			}
 			//System.out.println("Parse: Number of Racks: " + Integer.toString(rowCount - 1));
 			br.close();
@@ -130,14 +133,20 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 			e.printStackTrace();
 			return new Boolean(false);
 		}
-		//notifyUsers();
 		return setRacks();
 	}
 
-//	private void notifyUsers() {
-//		//AccountServiceImpl asi = new AccountServiceImpl();
-//		AccountServiceImpl.setDataChanged(true);
-//	}
+	private int parseLoadParams(String[] params) throws RuntimeException {
+		// TODO: if no params found then just parse everything, right now setting to 20
+		if (params == null || params.length == 0) return 20;
+		int limit = 0;
+		try {
+			limit = Integer.parseInt(params[0]);
+		} catch (NumberFormatException e) {
+			throw new RuntimeException();
+		}
+		return limit;
+	}
 
 	private void createRack(final String[] rack) {
 	  Rack clientRack = new Rack(Integer.parseInt(rack[1]), rack[2], rack[3], rack[4], 
@@ -182,9 +191,5 @@ public class AdminServiceImpl extends RemoteServiceServlet implements AdminServi
 	public Boolean userNotify(String notification) {
 		AccountServiceImpl asi = new AccountServiceImpl();
 		return asi.setNotification(notification);
-//		if (notification == null) return new Boolean(false);
-//		if (notification.compareTo("") != 0) this.notification  = notification;
-//		else this.notification = "";
-//		return new Boolean(true);
 	}
 }
